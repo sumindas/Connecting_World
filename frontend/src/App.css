@@ -5,6 +5,9 @@
     text-align: none;
     list-style: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-decoration: none;
+    outline: none;
+    border: none;
 }
 
 :root{
@@ -16,6 +19,17 @@
     --color-border:lightgray;
     --color-red:red;
 }
+.darkmode{
+    --text-color:white;
+    --color-bg:black;
+    --color-card:#11111;
+    --color-soft:#aaaaaa;
+}
+
+body{
+    overflow-x: hidden;
+}
+
 .container{
     max-width: 991px;
     width: 100%;
@@ -79,4 +93,11 @@ small,p{
 .btn-red{
     background: var(--color-primary);
     color: white;
+}
+
+main{
+    display: grid;
+    grid-template-columns: 20% 54% 23%;
+    gap: 3%;
+    width: 100%;
 }

@@ -1,15 +1,18 @@
 import React from 'react'
 import './signup.css'
+import { Link } from 'react-router-dom'
 
 export const SignUp = () => {
   return (
     <div className="signup">
       <div className="card">
       <div className="left">
-        <h2>Connecting World SignUp <br />-</h2>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.Lorem ipsum dolor sit amet consectetur adipisicing elit.Lorem ipsum dolor sit amet consectetur adipisicing elit. </p>
+        <h2>-<br /> Connecting World SignUp <br />-</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.Lorem ipsum dolor sit amet . </p>
         <span>Have an Account?</span>
+        <Link to = '/login'>
         <button className='btn btn-primary'>Login</button>
+        </Link>
         {/* <a href="/auth/google" className="google-auth-link">
             <span className="google-icon"><i className="material-icons google-icon">google</i></span> Sign up with Google
           </a> */}
