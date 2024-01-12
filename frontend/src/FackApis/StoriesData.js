@@ -1,5 +1,5 @@
 
-import StoryProfile1 from "../assets/img/storyProfile1.jpg";
+import StoryProfile1 from "../assets/img/StoryProfile1.jpg";
 import StoryProfile2 from "../assets/img/StoryProfile2.jpg";
 import StoryProfile3 from "../assets/img/StoryProfile3.jpg";
 import StoryProfile4 from "../assets/img/StoryProfile4.jpg";

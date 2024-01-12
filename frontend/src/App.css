@@ -101,3 +101,20 @@ main{
     gap: 3%;
     width: 100%;
 }
+
+@media (max-width:1024px) {
+    main{
+        grid-template-columns: 8% 56% 32%;
+    }
+    
+}
+
+@media (max-width:768px) {
+    main{
+        grid-template-columns: 1fr;
+    }
+    .container{
+        width: 94%;
+    }
+    
+}
