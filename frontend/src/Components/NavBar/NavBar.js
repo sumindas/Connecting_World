@@ -51,7 +51,7 @@ export default function NavBar() {
             </Link>
             <div className="user">
                 <img src={CurrentUser.map(user=>(user.ProfieImage))} alt="" />
-                <h4 >Mark Antony</h4>
+                <h4 style={{marginLeft:'10px'}}>Mark Antony</h4>
             </div>
         </div>
       </div>
