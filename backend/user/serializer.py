@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from rest_framework.validators import UniqueValidator
+from rest_framework.authentication import BaseAuthentication
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -20,3 +21,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+    
+    
+class VerifyUserSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField()

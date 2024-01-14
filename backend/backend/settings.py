@@ -39,8 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.core.mail',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework.authtoken',
     'user',
 ]
 
@@ -135,6 +137,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -151,9 +154,9 @@ SIMPLE_JWT = {
 }
 
 
-EMAIL_BACKEND = 'django.core.email.beckends.smtp.EmailBackend'
-EMAIL_HOST = 'vrsumindas007@gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'Sumindasvr'
-EMAIL_HOST_PASSWORD = 'sumindas1999'
+EMAIL_HOST_USER = 'vrsumindas007@gmail.com'
+EMAIL_HOST_PASSWORD = "tmdw ctte rjef ruhe"
