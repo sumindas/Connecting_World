@@ -14,6 +14,7 @@ from .email import send_otp_email
 import jwt, datetime
 from rest_framework.authtoken.models import Token
 from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 
 
 # Create your views here.
@@ -53,11 +54,11 @@ class Verify_Otp(APIView):
         try:
             data = request.data
             serializer = VerifyUserSerializer(data=data)
-            
+
             if serializer.is_valid():
                 email = serializer.data['email']
                 otp = serializer.data['otp']
-                
+
                 user = CustomUser.objects.get(email = email)
                 if not user:
                     return Response({
@@ -65,32 +66,77 @@ class Verify_Otp(APIView):
                         'message':"Something went Wrong",
                         'data' : "invalid Email"
                     })
-                
-                if not user.otp == otp:
+
+                if user.otp != otp:
                     return Response({
                         'status':400,
                         'message':"Something went Wrong",
                         'data' : "invalid Otp"
                     })
-                
+
                 user.is_verified = True
+                user.otp = None
                 user.save()
-                
+
                 return Response({
                 'status' : 200,
                 'message' : 'Account Verified'
-                
+
                 })
             return Response({
                 'status': 400,
                 'message': 'Validation Error',
                 'errors': serializer.errors
             })
-                            
-                
+
+
         except Exception as e:
             print(e)
             return Response({
                 'status': 500,
                 'message': 'Internal Server Error'
             })
+            
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self,request):
+        email = request.data['email']
+        password = request.data['password']
+
+        if not (email and password):
+            return Response({
+                'error': 'Email and Password is required'
+            })
+
+        user = CustomUser.objects.filter(email=email).first()
+        print(user,"--",user.is_verified)
+        
+        
+        if not user.is_verified:
+            raise AuthenticationFailed({
+                'error':'User is not Verified'
+            })
+            
+        if user is None:
+            raise AuthenticationFailed({
+                'error':'User is not found'
+            })
+        if not user.check_password(password):
+            raise AuthenticationFailed({'error':'Incorrrect Password'})
+
+        payload = {
+            'id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'iat': datetime.datetime.now(datetime.timezone.utc),
+        }
+        token = jwt.encode(payload, 'secret', algorithm="HS256")
+        response = Response()
+
+        response.data = {
+            'jwt': token,
+            'message': 'Login Success'
+        }
+
+        return response
