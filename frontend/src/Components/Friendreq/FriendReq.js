@@ -7,7 +7,7 @@ export default function FriendReq() {
 
   return (
     <div className="Friend-Requests">
-        <h4>Follow Requests</h4>
+        <h4 style={{textAlign:'center',marginTop:'10px',marginLeft:'-15px'}}><strong>Follow Requests</strong></h4>
         {
             FirendReqData.map(friend=>(
                 <div className="request">

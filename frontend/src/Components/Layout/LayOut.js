@@ -11,6 +11,7 @@ import Home from '../Home/Home'
 import NavBar from '../NavBar/NavBar'
 import LeftBar from '../LeftBar/LeftBar'
 import RightBar from '../RightBar/RightBar'
+import Verification from '../Verification/Verify'
 
 
 export default function LayOut() {
@@ -38,7 +39,7 @@ export default function LayOut() {
       element:<Feed />,
       children: [
         {
-          path: '/',
+          path: 'home',
           element : <Home />
         },
         {
@@ -52,13 +53,18 @@ export default function LayOut() {
       ]
     },
     {
-      path : '/login',
+      index : true,
       element : <Login />
     },
     {
       path : '/signup',
       element : <SignUp />
-    }
+    },
+    {
+    path : '/verify',
+    element : <Verification />
+  }
+
   ])
   return (
     <>
