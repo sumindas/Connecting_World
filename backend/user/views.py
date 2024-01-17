@@ -25,10 +25,11 @@ class SignUpView(APIView):
         data = request.data
         email = data.get('email')
         username = data.get('username')
-        full_name = data.get('fullname')
+        full_name = data.get('full_name')
         password = data.get('password')
-        if not email or username or full_name or password:
-            return Response({'error':'Please Fill required Fields'})
+        if not email or not username or not full_name or not password:
+            return Response({'error':'Please Fill required Fields'},status=status.HTTP_400_BAD_REQUEST)
+
         if CustomUser.objects.filter(email=email).exists():
             print('Email Already Exists')
             return Response({'error':'Email Already Exists'},status=status.HTTP_400_BAD_REQUEST)
@@ -56,13 +57,15 @@ class Verify_Otp(APIView):
     def post(self,request):
         try:
             data = request.data
+            print("Request.Data:",request.data)
+            email = data.get('email')
+            otp = data.get('otp')
+            print("Otp:",otp,"---------","email:",email)
             serializer = VerifyUserSerializer(data=data)
-
+            print(serializer)
             if serializer.is_valid():
-                email = serializer.data['email']
-                otp = serializer.data['otp']
 
-                user = CustomUser.objects.get(otp = otp)
+                user = CustomUser.objects.get(email = email)
                 if not user:
                     return Response({
                         'status':400,

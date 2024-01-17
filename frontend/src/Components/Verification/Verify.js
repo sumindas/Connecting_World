@@ -1,23 +1,36 @@
 import React, { useState } from 'react';
-import { UseDispatch,useDispatch,useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { setError } from '../../Redux/Slice/authSlice';
-import { verifyOtpAsync } from '../../Redux/Actions/authActions';
+import { clearError, setEmail, setError, setUser } from '../../Redux/Slice/authSlice';
+import { api } from '../../Api/api';
 import './verify.css';
 
-const Verification = ({ email }) => {
-  const dispatch = useDispatch()
-  const authError = useSelector((state)=>state.authError)
+const Verification = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const authError = useSelector((state) => state.authError);
   const [otp, setOtp] = useState('');
+  const email = useSelector((state) => state.auth.email);
 
-  const handleOtpChange = (e) => {
-    setOtp(e.target.value);
-  };
+  
 
-  const handleVerify = async(e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
-    dispatch(verifyOtpAsync({ otp }))
-  }
+    dispatch(clearError());
+    try{
+      const response = await api.verifyOtp(email,otp)
+      console.log('Api Response:',response)
+
+      if(response.status === 200){
+        dispatch(setUser)
+        navigate('/')
+      }else{
+        dispatch(setError(response.data.error || 'Error Verifying Otp'))
+      }
+    } catch(error){
+      dispatch(setError(error.message || 'Invalid Otp'))
+    }
+  };
 
   return (
     <div className="verification">
@@ -26,11 +39,11 @@ const Verification = ({ email }) => {
           <h2>-<br /> OTP Verification <br />-</h2>
           <p>Please enter the OTP sent to {email}.</p>
         </div>
-        <form className='right'>
+        <form className='right'onSubmit={handleVerify}>
           <label htmlFor="otp">OTP:</label>
-          {/* <input type="text" id = 'email' value={email} readOnly /> */}
-          <input type="text" id="otp" value={otp} onChange={handleOtpChange} />
-          <button className='btn' onClick={handleVerify}>Verify</button>
+          <input type="text" name='email' value={email} readOnly />
+          <input type="text" name="otp" value={otp} onChange={(e) => setOtp(e.target.value)} />
+          <button className='btn' type='submit' >Verify</button>
           {authError && <p style={{ color: 'red' }}>{authError}</p>}
         </form>
       </div>

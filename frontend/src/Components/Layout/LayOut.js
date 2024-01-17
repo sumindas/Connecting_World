@@ -36,36 +36,37 @@ export default function LayOut() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element:<Feed />,
+      element: <Login /> 
+    },
+    {
+      path: '/signup',
+      element: <SignUp />
+    },
+    {
+      path: '/verify',
+      element: <Verification />
+    },
+    {
+      path: '/home', 
+      element: <Feed />,
       children: [
         {
-          path: 'home',
-          element : <Home />
+          path: '',
+          element: <Home />
         },
         {
-          path: '/profile/:id',
-          element : <Profile />
+          path: 'profile/:id',
+          element: <Profile />
         },
         {
-          path: '/chat/:id',
-          element : <ChatBox />
+          path: 'chat/:id',
+          element: <ChatBox />
         },
       ]
-    },
-    {
-      index : true,
-      element : <Login />
-    },
-    {
-      path : '/signup',
-      element : <SignUp />
-    },
-    {
-    path : '/verify',
-    element : <Verification />
-  }
-
+    }
   ])
+
+
   return (
     <>
         <RouterProvider router = {router} />

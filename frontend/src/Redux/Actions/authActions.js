@@ -1,47 +1,28 @@
-import { signUpApi,api,loginApi } from "../../Api/api";
+import { signUpApi,loginApi } from "../../Api/api";
 import { setUser,setError } from "../Slice/authSlice";
-import { createAsyncThunk } from '@reduxjs/toolkit'
+
 
 export const signUpAsync = (userData,navigate) => async (dispatch) => {
     try{
         const response = await signUpApi(userData)
-        const {email} = userData
-        if (response.ok){
+        console.log(response)
+        if (response.status === 200){
+            console.log("User Created Successfully")
             dispatch(setUser(response.data.data))
-            navigate(`/verify?email=${email}`)
+            navigate('/verify')
         }
         else{
-            setError(userData.error)
+          console.log('Error during user creation:', response.data.error)
+          dispatch(setError(response.data.error))
         }
         
     } catch(error){
-        dispatch(setError(error.response.data.error));
+      console.log('Error during user creation:', error.response?.data?.message || 'Unknown error occurred');
+      dispatch(setError(error.response?.data?.message))
     }
 }
 
-// export const verifyOtpAsync = (otpData,navigate) => async (dispatch) => {
-//     try{
-//         const response = await verifyOtpApi(otpData)
-//         if (response.ok){
-//             navigate('/')
-//         }
-//         else{
-//             setError("invalid otp")
-//             dispatch(setError("invalid"))
-//         }
-       
-//     } catch(error){
-//         dispatch(setError(error.response.data.error))
-//     }
-// }
-export const verifyOtpAsync = createAsyncThunk('auth/verifyOtp', async (otpData, { dispatch }) => {
-    try {
-      const response = await api.verifyOtp(otpData);
-      dispatch(setUser(response.data.data)); 
-    } catch (error) {
-      dispatch(setError(error.message || 'Error verifying OTP'));
-    }
-  });
+
 
 export const loginAsync = (loginData, navigate) => async (dispatch) => {
     try {

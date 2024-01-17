@@ -1,35 +1,42 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { verifyOtpAsync } from "../Actions/authActions";
+
+
 
 
 const authSlice = createSlice({
+    
     name :'auth',
     initialState : {
         user : null,
         isAuthenticated : false,
         error : null,
+        email : "",
+        isSuccess : false,
     },
     reducers :{
         setUser : (state,action) => {
             state.user = action.payload
-            state.isAuthenticated = !! action.payload
+            state.isAuthenticated = true
             state.error = null
         },
         setError : (state,action)=>{
             state.error = action.payload
-        }
+            state.isAuthenticated = false
+        },
+        clearError :(state) => {
+          state.error = null
+        },
+        setEmail :(state,action) => {
+          state.email = action.payload
+        },
+        otpVerificationSuccess: (state, action) => {
+          state.isSuccess = action.payload;
+        },
     },
-    extraReducers: (builder) => {
-        builder.addCase(verifyOtpAsync.fulfilled, (state, action) => {
-          // Handle successful OTP verification
-        });
-        builder.addCase(verifyOtpAsync.rejected, (state, action) => {
-          // Handle rejected OTP verification
-        });
-      },
+   
 })
 
 
-export const {setUser,setError} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,isSuccess} = authSlice.actions
 
 export default authSlice.reducer

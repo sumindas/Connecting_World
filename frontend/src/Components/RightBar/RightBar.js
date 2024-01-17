@@ -9,7 +9,7 @@ export default function RightBar() {
     <div className="rightBar">
       <div className="rightbar-container">
         <Message />
-        {/* <FriendReq /> */}
+        <FriendReq />
       </div>
     </div>
   )
