@@ -40,12 +40,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.core.mail',
+    'rest_auth',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'rest_framework.authtoken',
     'user',
-    'corsheaders'
+    'corsheaders',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -78,6 +84,11 @@ TEMPLATES = [
 ]
 
 AUTH_USER_MODEL = 'user.CustomUser'
+
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
@@ -214,3 +225,13 @@ CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:3000'
 
 ]
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": "639970476076-c0s6jnvhnhaa1sk619mlo3ddo8g24u95.apps.googleusercontent.com",
+            "secret": "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",
+        },
+    },
+}

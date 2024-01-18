@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { setError,setEmail } from '../../Redux/Slice/authSlice'
 import { signUpAsync } from '../../Redux/Actions/authActions'
 import { GoogleLogin } from 'react-google-login'
+import axios from 'axios'
 
 export const SignUp = () => {
   const dispatch = useDispatch()
@@ -23,6 +24,17 @@ export const SignUp = () => {
     username: '',
     password: '',
   })
+
+  const handleGoogleLogin = async(response) =>{
+    try{
+      const backendResponse = await axios.post('http://127.0.0.1:8000/google',{
+        access_token :response.access_Token
+      })
+      console.log(backendResponse.data)
+    }catch(error){
+      console.log(error)
+    }
+  }
 
    
   
@@ -105,8 +117,10 @@ export const SignUp = () => {
         {authError && <p style={{color:'red'}}>{authError}</p>}
           <button className='btn' type='submit'>Register</button>
           <GoogleLogin className="google-btn"
-            clientId="YOUR_GOOGLE_CLIENT_ID"
+            clientId="639970476076-c0s6jnvhnhaa1sk619mlo3ddo8g24u95.apps.googleusercontent.com"
             buttonText="SignUp with Google"
+            onSuccess={handleGoogleLogin}
+            onFailure={handleGoogleLogin}
             cookiePolicy={'single_host_origin'}
           />
       </form>

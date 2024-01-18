@@ -5,16 +5,18 @@ from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt.tokens import RefreshToken
 from user.models import *
-from django.contrib.auth import authenticate
 from .serializer import *
 from rest_framework.permissions import AllowAny
 from .email import send_otp_email
 import jwt, datetime
-from rest_framework.authtoken.models import Token
-from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+
 
 
 # Create your views here.
@@ -52,7 +54,7 @@ class SignUpView(APIView):
             return Response({'error':str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class Verify_Otp(APIView):
-    authentication_classes = []
+    authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
     def post(self,request):
         try:
@@ -146,3 +148,9 @@ class LoginView(APIView):
         }
 
         return response
+    
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = CustomUserSerializer
