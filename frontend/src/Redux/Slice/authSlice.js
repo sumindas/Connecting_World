@@ -1,8 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-
-
-
 const authSlice = createSlice({
     
     name :'auth',
@@ -12,6 +9,8 @@ const authSlice = createSlice({
         error : null,
         email : "",
         isSuccess : false,
+        token : "",
+        admin_token : "",
     },
     reducers :{
         setUser : (state,action) => {
@@ -20,23 +19,27 @@ const authSlice = createSlice({
             state.error = null
         },
         setError : (state,action)=>{
+            console.log("Error:",action.payload)
             state.error = action.payload
             state.isAuthenticated = false
         },
-        clearError :(state) => {
+        clearError :(state) => {                                                                       
           state.error = null
         },
         setEmail :(state,action) => {
           state.email = action.payload
         },
-        otpVerificationSuccess: (state, action) => {
-          state.isSuccess = action.payload;
+        otpVerificationSuccess: (state, action) => {                                               
+          state.isSuccess = true;
         },
+        setToken : (state,action) => {
+          state.token = action.payload
+        }
     },
    
 })
 
 
-export const {setUser,setError,clearError,setEmail,isSuccess} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,isSuccess,setToken} = authSlice.actions
 
 export default authSlice.reducer

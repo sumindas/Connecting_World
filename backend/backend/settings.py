@@ -40,7 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.core.mail',
+    'social_django',
+    'django.contrib.sites',
     'rest_auth',
+    'dj_rest_auth',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -87,6 +90,7 @@ AUTH_USER_MODEL = 'user.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
+    'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -99,7 +103,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
    'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'social_django',
+        'NAME': 'project_2',
         'USER': 'postgres',
         'PASSWORD': 'sumindasvr',
         'HOST':'localhost',
@@ -153,6 +157,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -226,12 +231,25 @@ CORS_ORIGIN_WHITELIST = [
 
 ]
 
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY =  "639970476076-c0s6jnvhnhaa1sk619mlo3ddo8g24u95.apps.googleusercontent.com"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
 
+SOCIAL_AUTH_URL_NAMESPACE = 'google'  
+
+SITE_ID = 1
+
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'  
 SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "APP": {
-            "client_id": "639970476076-c0s6jnvhnhaa1sk619mlo3ddo8g24u95.apps.googleusercontent.com",
-            "secret": "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",
-        },
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
     },
 }
+
+
+import os
+BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL', default='http://localhost:3000')
+GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')
+BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL')

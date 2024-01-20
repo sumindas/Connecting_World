@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { clearError, setEmail, setError, setUser } from '../../Redux/Slice/authSlice';
-import { api } from '../../Api/api';
+import { api, verifyOtp } from '../../Api/api';
 import './verify.css';
+import { verifyOtpAsync } from '../../Redux/Actions/authActions';
 
 const Verification = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const authError = useSelector((state) => state.authError);
+  const authError = useSelector((state) => state.auth.error);
   const [otp, setOtp] = useState('');
   const email = useSelector((state) => state.auth.email);
 
@@ -17,19 +18,7 @@ const Verification = () => {
   const handleVerify = async (e) => {
     e.preventDefault();
     dispatch(clearError());
-    try{
-      const response = await api.verifyOtp(email,otp)
-      console.log('Api Response:',response)
-
-      if(response.status === 200){
-        dispatch(setUser)
-        navigate('/')
-      }else{
-        dispatch(setError(response.data.error || 'Error Verifying Otp'))
-      }
-    } catch(error){
-      dispatch(setError(error.message || 'Invalid Otp'))
-    }
+    dispatch(verifyOtpAsync(email,otp,navigate))
   };
 
   return (
@@ -44,7 +33,7 @@ const Verification = () => {
           <input type="text" name='email' value={email} readOnly />
           <input type="text" name="otp" value={otp} onChange={(e) => setOtp(e.target.value)} />
           <button className='btn' type='submit' >Verify</button>
-          {authError && <p style={{ color: 'red' }}>{authError}</p>}
+          {authError && <p style={{ color: 'red',textAlign:'center' }}>{authError}</p>}
         </form>
       </div>
     </div>

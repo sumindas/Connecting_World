@@ -29,3 +29,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class VerifyUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField()
+    
+    
+class GoogleSerializers(serializers.ModelSerializer):
+    
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'full_name', 'email']

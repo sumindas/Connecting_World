@@ -17,6 +17,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(default=timezone.now)
     ph_no=models.CharField(max_length=15,blank=True)
     bio = models.TextField(default = '')
+
     
     objects = CustomUserManager()
     

@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import './login.css'
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../../Redux/Actions/authActions';
 import { setError } from '../../Redux/Slice/authSlice';
-import { loginAsync } from '../../Redux/Actions/authActions';
+
 
 function Login() {
-  const dispatch = useDispatch();
+  
   const navigate = useNavigate();
-  const authError = useSelector((state) => state.auth.error);
+  const dispatch = useDispatch()
+  const [email, setEmail] = useState('');
+  const error = useSelector((state) => state.auth.error)
+  const [password, setPassword] = useState('');
 
-  const [loginData, setLoginData] = useState({
-    username: '',
-    password: '',
-  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    dispatch(loginAsync(loginData, navigate));
-  };
+    dispatch(login(email,password,navigate))
+}
 
   return (
     <div className="login">
@@ -34,17 +34,17 @@ function Login() {
         <form className='right' onSubmit={handleLogin}>
           <input
             type="text"
-            placeholder='username'
-            value={loginData.username}
-            onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+            placeholder='Email'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             placeholder='password'
-            value={loginData.password}
-            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          {authError && <p style={{ color: 'red' }}>{authError}</p>}
+          {error && <p style={{ color: 'red' }}>{error}</p>}
           <button className='btn' type='submit'>Login</button>
         </form>
       </div>
