@@ -63,8 +63,8 @@
     margin-top: 1rem;
 }
 
-.google-btn {
-    /* Style the Google authentication button */
+
+.google-btn {   
     background: white;
     color: var(--color-primary);
     padding: 1rem 0;
@@ -76,6 +76,11 @@
     text-align: center;
     margin-bottom: 20px;
   }
+
+
+.register-btn{
+    background: white;
+}
 
 @media (max-width:600px) {
     .signup .card{

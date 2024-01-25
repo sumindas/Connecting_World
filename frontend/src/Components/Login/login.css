@@ -6,6 +6,10 @@
     align-items: center;
     justify-content: center;
 }
+
+.login-btn{
+    background: white;
+}
 .login .card{
     display: flex;
     width: 500px;

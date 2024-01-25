@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { clearError, setEmail, setError, setUser } from '../../Redux/Slice/authSlice';
-import { api, verifyOtp } from '../../Api/api';
+import { clearError } from '../../Redux/Slice/authSlice';
 import './verify.css';
 import { verifyOtpAsync } from '../../Redux/Actions/authActions';
 
@@ -32,7 +31,7 @@ const Verification = () => {
           <label htmlFor="otp">OTP:</label>
           <input type="text" name='email' value={email} readOnly />
           <input type="text" name="otp" value={otp} onChange={(e) => setOtp(e.target.value)} />
-          <button className='btn' type='submit' >Verify</button>
+          <button className='btn verify-btn' type='submit' >Verify</button>
           {authError && <p style={{ color: 'red',textAlign:'center' }}>{authError}</p>}
         </form>
       </div>

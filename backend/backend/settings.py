@@ -231,25 +231,26 @@ CORS_ORIGIN_WHITELIST = [
 
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY =  "639970476076-c0s6jnvhnhaa1sk619mlo3ddo8g24u95.apps.googleusercontent.com"
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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"
+SECURE_REFERRER_POLICY = 'same-origin'
 
 SOCIAL_AUTH_URL_NAMESPACE = 'google'  
 
 SITE_ID = 1
 
-
+import os
 ACCOUNT_EMAIL_VERIFICATION = 'none'  
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-    },
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_OAUTH2_CLIENT_ID'),
+            'secret': os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET'),
+        }
+    }
 }
 
 
-import os
-BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL', default='http://localhost:3000')
-GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
-GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')
-BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL')
+
+# BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL', default='http://localhost:3000')
+# GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
+# GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')
+# BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL')

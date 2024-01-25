@@ -69,7 +69,9 @@
     color: var(--color-primary);
     margin-top: 1rem;
   }
-  
+  .verify-btn{
+    background: white;
+  }
   @media (max-width: 600px) {
     .verification .card {
       width: 90%;

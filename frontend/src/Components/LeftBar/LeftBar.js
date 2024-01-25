@@ -35,10 +35,10 @@ export default function LeftBar() {
             </div>
           </Link>
 
-          <Link to = '/'>
+          <Link to = 'home/profileSettings'>
             <div className="item">
               <img src={Groups} alt="" />
-              <h4>Groups</h4>
+              <h4>Profile</h4>
             </div>
           </Link>
 
@@ -75,7 +75,7 @@ export default function LeftBar() {
             </div>
           </Link>
 
-          <Link to = '/chat/id'>
+          <Link to = 'home/chat/id'>
             <div className="item">
               <img src={message} alt="" />
               <h4>Messages</h4>

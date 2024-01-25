@@ -1,5 +1,6 @@
 import { loginApi, signUpApi, verifyOtp } from "../../Api/api";
-import { setUser,setError,clearError,setToken } from "../Slice/authSlice";
+import { setUser,setError,clearError,setLogin, setEmail } from "../Slice/authSlice";
+import axios from "axios";
 
 
 export const signUpAsync = (userData,navigate) => async (dispatch) => {
@@ -49,18 +50,43 @@ export const login = (email,password,navigate) => async (dispatch) =>{
     const response = await loginApi(email,password)
     console.log(response)
     if(response.status === 200){
-      dispatch(setUser(response.data.data))
-      dispatch(setToken(response.data.jwt))
+      dispatch(setLogin(response.data))
+      console.log("Login data:",response.data)
+      console.log("token:",response.data.jwt)
+      console.log("userid:",response.data.user.id)
       dispatch(clearError())
-      navigate('/home')
+      navigate(`/home/profile/${response.data.user.id}`)
     }
     else{
       dispatch(setError("invalid details"))
     }
   }catch(error){
     console.log("An Error Occured:",error)
-    dispatch(setError("Invalid details"))
+    if(error.response.data.error === 'User Is not verified'){
+      dispatch(setEmail(email))
+      navigate('/verify')
+    }
+    console.log("---------",error.response.data.error)
+    dispatch(setError(error.response.data.error))
   }
 }
 
+export const googleLoginAsync = (tokenId, navigate) => async (dispatch) => {
+  try {
 
+    const response = await axios.post('http://127.0.0.1:8000/auth/login/google/', {
+      access_token: tokenId,
+      
+    });
+
+    const { user, token } = response.data;
+    console.log("User:",user)
+    console.log("Token:",token)
+    dispatch(setUser(user));
+    dispatch(setLogin(token));
+    navigate('/');
+  } catch (error) {
+    console.log("Error:",error);
+    dispatch(setError("Google login failed. Please try again."));
+  }
+};

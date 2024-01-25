@@ -27,7 +27,7 @@ export default function NavBar() {
             <Link to = '/'>
               <FontAwesomeIcon icon={faHome} />
             </Link>
-            <Link to = '/profile/id'>
+            <Link to = '/home/profile/id'>
               <FontAwesomeIcon icon={faUser} />
             </Link>
             <div className="Nav-Searchbar">
@@ -39,7 +39,7 @@ export default function NavBar() {
         {/* ............Nav Area Right............... */}
         
         <div className="nav-right">
-            <Link to = '/chat/id'>
+            <Link to = '/home/chat/id'>
               <FontAwesomeIcon icon={faEnvelope} />
             </Link>
             <Link to = '/'>

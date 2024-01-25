@@ -5,10 +5,9 @@ const authSlice = createSlice({
     name :'auth',
     initialState : {
         user : null,
-        isAuthenticated : false,
         error : null,
         email : "",
-        isSuccess : false,
+        login : false,
         token : "",
         admin_token : "",
     },
@@ -21,7 +20,6 @@ const authSlice = createSlice({
         setError : (state,action)=>{
             console.log("Error:",action.payload)
             state.error = action.payload
-            state.isAuthenticated = false
         },
         clearError :(state) => {                                                                       
           state.error = null
@@ -29,17 +27,16 @@ const authSlice = createSlice({
         setEmail :(state,action) => {
           state.email = action.payload
         },
-        otpVerificationSuccess: (state, action) => {                                               
-          state.isSuccess = true;
-        },
-        setToken : (state,action) => {
-          state.token = action.payload
+        setLogin : (state,action) => {
+          state.user = action.payload.user
+          state.login = true
+          state.token = action.payload.jwt
         }
     },
    
 })
 
 
-export const {setUser,setError,clearError,setEmail,isSuccess,setToken} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,setLogin} = authSlice.actions
 
 export default authSlice.reducer
