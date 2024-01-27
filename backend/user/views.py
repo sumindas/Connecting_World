@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from user.models import *
 from .serializer import *
 from rest_framework.permissions import AllowAny
@@ -18,13 +17,10 @@ from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
-from .mixins import PublicApiMixin, ApiErrorsMixin
-from .utils import google_get_access_token, google_get_user_info
 from rest_framework import generics, permissions
 from rest_framework.permissions import IsAuthenticated
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+
 
 
 
@@ -167,31 +163,6 @@ class LoginView(APIView):
 
 
 
-
-class GoogleLoginApi(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-    client_class = OAuth2Client
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        if response.status_code == status.HTTP_200_OK:
-            user_data = response.data.get('user', {})
-            user, created = CustomUser.objects.get_or_create(email=user_data.get('email'))
-            
-            if created:
-                user.full_name = user_data.get('full_name', '')
-                user.username = user_data.get('username', '')
-                user.is_verified = True  
-                user.save()
-            
-            user_serializer = CustomUserSerializer(user)
-            serialized_user = user_serializer.data
-            
-            return Response({"detail": "Google login successful", "user": serialized_user}, status=status.HTTP_200_OK)
-        else:
-            return Response({"detail": "Google login failed"}, status=status.HTTP_400_BAD_REQUEST)
-        
         
 class UserProfileCreateView(APIView):
     def post(self, request):

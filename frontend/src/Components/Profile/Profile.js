@@ -12,7 +12,7 @@ export default function Profile() {
   console.log("userid in User Page:",userId)
   return (
     <>
-        <UserProfile userId = {userId} />
+        <UserProfile  />
         <AddPost />
         {/* <Feeds /> */}
     </>

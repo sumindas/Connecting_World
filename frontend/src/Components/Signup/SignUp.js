@@ -18,17 +18,15 @@ export const SignUp = () => {
   });
   console.log(authError);
 
-  const handleGoogleLogin = async (response) => {
-    console.log('Response:', response);
-    if (response?.tokenID) {
-      console.log('Google Login Success');
-      dispatch(googleLoginAsync(response.tokenID, navigate));
-    } else if (response?.error === 'popup_closed_by_user') {
-      console.log('User closed the Google Sign-In popup');
-    } else {
-      console.log('Login Failed');
-    }
+
+  const handleGoogleSignIn = async (response) => {
+    // Send the obtained Google access token or authorization code to the backend
+    const googleToken = response.token;
+    // Dispatch an action to initiate the backend authentication
+    dispatch(googleLoginAsync(googleToken, navigate));
   };
+
+  
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -57,7 +55,8 @@ export const SignUp = () => {
           {authError && <p style={{ color: 'red', textAlign: 'center' }}>{authError}</p>}
           <button className='btn register-btn' type='submit'>Register</button>
           <GoogleOAuthProvider className = 'google'>
-            <GoogleLogin  clientId="73138496489-k32qantd0csou71vne0tk6kftpshbcks.apps.googleusercontent.com" className="google-btn" buttonText="SignUp with Google" onSuccess={handleGoogleLogin} onFailure={handleGoogleLogin} cookiePolicy={'single_host_origin'} type="submit" jsSrc="https://apis.google.com/js/api.js" />
+            <GoogleLogin  clientId="73138496489-k32qantd0csou71vne0tk6kftpshbcks.apps.googleusercontent.com" className="google-btn" buttonText="SignUp with Google"onSuccess={handleGoogleSignIn}
+        onFailure={(error) => console.error('Google Sign-In failed', error)}   cookiePolicy={'single_host_origin'} type="submit" jsSrc="https://apis.google.com/js/api.js" />
           </GoogleOAuthProvider>
         </form>
       </div>

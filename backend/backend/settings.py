@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.core.mail',
-    'social_django',
     'django.contrib.sites',
     'rest_auth',
     'dj_rest_auth',
@@ -50,10 +49,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'user',
     'corsheaders',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -197,12 +192,7 @@ SIMPLE_JWT = {
 }
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'vrsumindas007@gmail.com'
-EMAIL_HOST_PASSWORD = "tmdw ctte rjef ruhe"
+
 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -233,24 +223,3 @@ CORS_ORIGIN_WHITELIST = [
 
 SECURE_REFERRER_POLICY = 'same-origin'
 
-SOCIAL_AUTH_URL_NAMESPACE = 'google'  
-
-SITE_ID = 1
-
-import os
-ACCOUNT_EMAIL_VERIFICATION = 'none'  
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.environ.get('GOOGLE_OAUTH2_CLIENT_ID'),
-            'secret': os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET'),
-        }
-    }
-}
-
-
-
-# BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL', default='http://localhost:3000')
-# GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID')
-# GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET')
-# BASE_FRONTEND_URL = os.environ.get('DJANGO_BASE_FRONTEND_URL')

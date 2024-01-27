@@ -55,7 +55,7 @@ export const login = (email,password,navigate) => async (dispatch) =>{
       console.log("token:",response.data.jwt)
       console.log("userid:",response.data.user.id)
       dispatch(clearError())
-      navigate(`/home/profile/${response.data.user.id}`)
+      navigate('/home/profile')
     }
     else{
       dispatch(setError("invalid details"))

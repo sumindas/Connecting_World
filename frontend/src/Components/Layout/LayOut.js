@@ -67,7 +67,7 @@ export default function LayOut() {
           element: <Home />
         },
         {
-          path: 'profile/:id',
+          path: 'profile',
           element: <Profile />
         },
         {

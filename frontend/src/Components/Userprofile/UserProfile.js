@@ -17,11 +17,13 @@ export default function UserProfile() {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/userdata/${currentUser.id}`, {
+                const response = await fetch(`${BASE_URL}/userdata/`, {
+                    method : 'GET',
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        'Authorization': `Bearer ${token.jwt}`,
+                        'Content-Type': 'application/json',
                     },
-                    
+                    credentials: 'include'
                 });
                 console.log("Response:",response)
                 setUserData(response.data);
