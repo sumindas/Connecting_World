@@ -41,4 +41,4 @@ class GoogleSerializers(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'bio', 'avatar', 'date_of_birth', 'location', 'followers','phone']
+        fields = [ 'bio',  'date_of_birth', 'location','phone','profile_image','cover_photo']

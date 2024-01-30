@@ -29,7 +29,7 @@ from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
-@permission_classes([AllowAny])
+
 class SignUpView(APIView):
     def post(self, request):
         data = request.data
@@ -60,6 +60,7 @@ class SignUpView(APIView):
 
         serializer = CustomUserSerializer(data=data)
         try:
+            print("------------------tryblock-------------")
             serializer.is_valid(raise_exception=True)
             serializer.save()
             send_otp_email(serializer.data['email'])
@@ -72,7 +73,6 @@ class SignUpView(APIView):
             print("------------------")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 class Verify_Otp(APIView):
-    permission_classes = [AllowAny]
     def post(self,request):
         try:
             data = request.data
@@ -118,7 +118,6 @@ class Verify_Otp(APIView):
             
 
 class LoginView(APIView):
-    permission_classes = [AllowAny]
     
     def post(self,request):
         email = request.data['email']
@@ -157,58 +156,48 @@ class LoginView(APIView):
             'jwt': token,
             'message': 'Login Success'
         }
-
         return response
     
 
 
 
-        
-class UserProfileCreateView(APIView):
-    def post(self, request):
-        bio = request.data.get['bio']
-        avatar = request.data.get['avatar']
-        date_of_birth = request.data.get['dateOfBirth']
-        location = request.data.get['location']
-        phone = request.data.get['phone']
-        user = request.user.id
-        
-        if not user:
-            return Response({'error': 'User Not Found'},status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = UserProfile(data=request.data)
-        
-        if serializer.is_valid():
-            UserProfile.objects.create(
-                user=user,
-                bio = bio,
-                avatar = avatar,
-                date_of_birth = date_of_birth,
-                location = location,
-                phone = phone
-                )
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-
-
+    
 
 class userView(APIView):
-    def get(self,request):
+    def get(self, request):
         auth_header = request.headers.get('Authorization')
-        print("Auth Header:",auth_header)
+        print("Header:",auth_header)
 
         if not auth_header or 'Bearer ' not in auth_header:
             raise AuthenticationFailed("Not authorized")
 
         token = auth_header.split('Bearer ')[1]
+        print("Token---",token)
         try:
             payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+            print("Decoded Payload:", payload)
             user = CustomUser.objects.filter(id=payload['id']).first()
-            serializer = CustomUserSerializer(user)
-            return Response(serializer.data)
+            user_serializer = CustomUserSerializer(user)
+            
+            user_profile = UserProfile.objects.filter(user=user).first()
+            user_profile_serializer = UserProfileSerializer(user_profile)
+            
+            response_data = {
+                'user':user_serializer.data,
+                'user_profile' :user_profile_serializer.data
+            }
+            
+            return Response(response_data)
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Not authorized")
         except jwt.InvalidTokenError:
             raise AuthenticationFailed("Invalid token")
+
+
+class UpdateUserProfileView(generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.userprofile
