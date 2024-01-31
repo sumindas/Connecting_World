@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import './userprofile.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faFeed, faLink, faMessage, faSignOut } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { BASE_URL } from '../../Api/api';
 import { setUserProfile } from '../../Redux/Slice/profileSlice';
 import axios from 'axios';
-import { setUser } from '../../Redux/Slice/authSlice';
+import { setUser,userLogout } from '../../Redux/Slice/authSlice';
+
 
 export default function UserProfile() {
     const dispatch = useDispatch();
     const currentUser = useSelector((state) => state.auth.user);
     const token = useSelector((state) => state.auth.token);
     const [userData, setUserData] = useState(null);
+    const navigate = useNavigate()
     console.log("CurrentUser:",currentUser)
 
     useEffect(() => {
@@ -83,6 +85,12 @@ export default function UserProfile() {
         })
     }
 
+    const handleLogout = (e)=>{
+        dispatch(userLogout)
+        console.log("Success")
+        navigate('/')
+    }
+
     
     
     const isOwnProfile = currentUser && userData && currentUser.user.id === userData.user.id;
@@ -127,8 +135,8 @@ export default function UserProfile() {
             <button className="btn btn-primary">
               <FontAwesomeIcon icon={faEdit} />Update Profile
             </button>
-            <button className="btn btn-primary" >
-                        <FontAwesomeIcon icon={faSignOut} />Logout
+            <button className="btn btn-primary"onClick={(e) => handleLogout(e)} >
+                        <FontAwesomeIcon icon={faSignOut}  />Logout
             </button>
           </div>
           <p className='bio'>

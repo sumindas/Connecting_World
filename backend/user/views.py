@@ -201,3 +201,15 @@ class UpdateUserProfileView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user.userprofile
+    
+    
+    
+class UserLogout(APIView):
+    def post(self, request):
+        response = Response()
+        response.delete_cookie('jwt')
+        response.data = {
+            'message': 'success'
+        }
+        
+        return response

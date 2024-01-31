@@ -11,4 +11,10 @@ export const loginApi = (email,password) => axios.post(`${BASE_URL}/login/`,{ema
 
 export const userProfileApi = (userId) => axios.get(`${BASE_URL}/userdata/${userId}`)
 
+export const logoutApi = () => axios.post(`${BASE_URL}/logout/`)
+
+
+
+
+
 

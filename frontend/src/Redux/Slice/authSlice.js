@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import { createSlice } from "@reduxjs/toolkit";
 
 const authSlice = createSlice({
@@ -10,6 +11,7 @@ const authSlice = createSlice({
         login : false,
         token : "",
         admin_token : "",
+        allUsers : []
     },
     reducers :{
         setUser : (state,action) => {
@@ -31,12 +33,29 @@ const authSlice = createSlice({
           state.user = action.payload.user
           state.login = true
           state.token = action.payload.jwt
-        }
+        },
+        userLogout: (state) => {
+          state.user = null;
+          state.isAuthenticated = false;
+          state.error = null;
+          state.login = false;
+          state.token = "";
+      },
+      adminLogin:(state,action) => {
+        state.admin_token = action.payload.jwt
+      },
+      adminLogout : (state) => {
+        state.admin_token = " "
+        state.allUsers = []
+      },
+      UsersList : (state,action) => {
+        state.allUsers = action.data
+      }
     },
    
 })
 
 
-export const {setUser,setError,clearError,setEmail,setLogin} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,setLogin,userLogout,adminLogin,adminLogout,usersList} = authSlice.actions
 
 export default authSlice.reducer
