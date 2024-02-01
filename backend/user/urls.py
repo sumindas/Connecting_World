@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path,include
 from .views import *
 
 
@@ -7,6 +7,8 @@ urlpatterns = [
     path('verify_otp/',Verify_Otp.as_view(),name='verify_otp'),
     path('login/',LoginView.as_view(),name='login'),
     path('userdata/',userView.as_view(),name='userdata'),
-    path('profileupdate/',UpdateUserProfileView.as_view(),name='profileupdate'),
-    path('logout/',UserLogout.as_view(),name='logout')
+    path('logout/',UserLogout.as_view(),name='logout'),
+    path('google/', GoogleLogin.as_view(),name='google_login'),
+    path('userupdate/<int:id>/',UserProfileUpdate.as_view(),name='userupdate'),
+    path('addpost/',PostAdd.as_view(),name='postadd')
 ]

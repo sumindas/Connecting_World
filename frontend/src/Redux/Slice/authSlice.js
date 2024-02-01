@@ -50,12 +50,20 @@ const authSlice = createSlice({
       },
       UsersList : (state,action) => {
         state.allUsers = action.data
+      },
+      userUpdate : (state,action) => {
+          state.user.username = action.payload.username;
+          state.user.location = action.payload.location;
+          state.user.dateOfBirth = action.payload.dateOfBirth;
+          state.user.bio = action.payload.bio;
+          state.user.profileImage = action.payload.profileImage;
+          state.user.coverPhoto = action.payload.coverPhoto;
       }
     },
    
 })
 
 
-export const {setUser,setError,clearError,setEmail,setLogin,userLogout,adminLogin,adminLogout,usersList} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,setLogin,userLogout,adminLogin,adminLogout,usersList,userUpdate} = authSlice.actions
 
 export default authSlice.reducer

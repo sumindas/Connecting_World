@@ -3,8 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import './signup.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { setEmail } from '../../Redux/Slice/authSlice';
-import { googleLoginAsync, signUpAsync } from '../../Redux/Actions/authActions';
+import {  signUpAsync } from '../../Redux/Actions/authActions';
 import {  GoogleOAuthProvider,GoogleLogin } from '@react-oauth/google';
+import { httpRequest } from '../../Api/api';
+import { BASE_URL } from '../../Api/api';
 
 
 export const SignUp = () => {
@@ -20,11 +22,14 @@ export const SignUp = () => {
   console.log(authError);
 
 
-  const handleGoogleSignIn = async (response) => {
-    // Send the obtained Google access token or authorization code to the backend
-    const googleToken = response.token;
-    // Dispatch an action to initiate the backend authentication
-    dispatch(googleLoginAsync(googleToken, navigate));
+  const handleGoogleSignIn =(googleToken,navigate) => async (response) => {
+    try {
+      const response = await httpRequest(`${BASE_URL}/rest-auth/google/`, { token: googleToken });
+      console.log("Google:",response)
+      navigate('/home/profile')
+  } catch (error) {
+      console.log("Google error:",error)
+  }
   };
 
   
@@ -36,7 +41,7 @@ export const SignUp = () => {
   };
 
   return (
-    <GoogleOAuthProvider>
+    
     <div className="signup">
       <div className="card">
         <div className="left">
@@ -56,13 +61,13 @@ export const SignUp = () => {
           <input type="password" placeholder="password" value={userData.password} onChange={(e) => setUserData({ ...userData, password: e.target.value })} />
           {authError && <p style={{ color: 'red', textAlign: 'center' }}>{authError}</p>}
           <button className='btn register-btn' type='submit'>Register</button>
-          
-            <GoogleLogin  clientId="73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com" className="google-btn" buttonText="SignUp with Google"onSuccess={handleGoogleSignIn}
+          <GoogleOAuthProvider clientId="73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com">
+            <GoogleLogin  className="google-btn" buttonText="SignUp with Google"onSuccess={handleGoogleSignIn}
         onFailure={(error) => console.error('Google Sign-In failed', error)}   cookiePolicy={'single_host_origin'} type="submit" jsSrc="https://apis.google.com/js/api.js" />
-          
+          </GoogleOAuthProvider>
         </form>
       </div>
     </div>
-    </GoogleOAuthProvider>
+    
   );
 };

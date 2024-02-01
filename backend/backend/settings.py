@@ -42,10 +42,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.core.mail',
     'django.contrib.sites',
+    'rest_framework.authtoken',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'rest_framework',
     'user',
     'corsheaders',
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -95,6 +101,8 @@ DATABASES = {
         'port':'5432',
     }
 }
+
+SITE_ID = 1
 
 
 # Password validation
@@ -184,4 +192,14 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'vrsumindas007@gmail.com'
 EMAIL_HOST_PASSWORD = 'tmdw ctte rjef ruhe'
+
+
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SOCIAL_AUTH_URL_NAMESPACE = 'social:auth'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+
 

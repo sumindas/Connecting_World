@@ -1,7 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const postSlice = createSlice({
-  name: 'post',
+  name: "post",
   initialState: {
     posts: [],
   },
@@ -9,8 +9,13 @@ const postSlice = createSlice({
     addPost: (state, action) => {
       state.posts.push(action.payload.post);
     },
+    editPost: (state, action) => {
+      state.posts.push(action.payload.post);
+    },
     deletePost: (state, action) => {
-      state.posts = state.posts.filter((post) => post.id !== action.payload.postId);
+      state.posts = state.posts.filter(
+        (post) => post.id !== action.payload.postId
+      );
     },
   },
 });

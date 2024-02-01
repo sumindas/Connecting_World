@@ -19,6 +19,11 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.permissions import IsAuthenticated
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from rest_framework.decorators import api_view
 
 
 
@@ -122,6 +127,7 @@ class LoginView(APIView):
     def post(self,request):
         email = request.data['email']
         password = request.data['password']
+        provider = request.data.get('provider')
 
         if not email:
            return Response({'error':'Email is Required'},status=status.HTTP_400_BAD_REQUEST)
@@ -130,15 +136,20 @@ class LoginView(APIView):
 
         user = CustomUser.objects.filter(email=email).first()
         print(user)
-        
+
         if user is None:
             return Response({'error':'User Not found'},status=status.HTTP_400_BAD_REQUEST)
-        
+
         if not user.is_verified:
-            return Response({'error': 'User Is not verified'},status=status.HTTP_400_BAD_REQUEST)    
+            return Response({'error': 'User Is not verified'},status=status.HTTP_400_BAD_REQUEST)
         
-        if not user.check_password(password):
-            return Response({'error': 'Password Incorrect'},status=status.HTTP_400_BAD_REQUEST)    
+        if user.is_superuser == True:
+            return Response({'error': 'Admin Cannot access'},status=status.HTTP_400_BAD_REQUEST)    
+
+
+        if provider != 'google':
+            if not user.check_password(password):
+                return Response({'error': 'Password Incorrect'},status=status.HTTP_400_BAD_REQUEST)    
 
         payload = {
             'id': user.id,
@@ -159,20 +170,23 @@ class LoginView(APIView):
         return response
     
 
-
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    
+    def perform_login(self,serializer,user,*args,**kwargs):
+        super().perform_login(self,serializer,user,*args,**kwargs)
+        user.is_verified = True
+        user.save()
 
     
 
 class userView(APIView):
     def get(self, request):
         auth_header = request.headers.get('Authorization')
-        print("Header:",auth_header)
 
         if not auth_header or 'Bearer ' not in auth_header:
             raise AuthenticationFailed("Not authorized")
-
         token = auth_header.split('Bearer ')[1]
-        print("Token---",token)
         try:
             payload = jwt.decode(token, 'secret', algorithms=["HS256"])
             print("Decoded Payload:", payload)
@@ -194,13 +208,7 @@ class userView(APIView):
             raise AuthenticationFailed("Invalid token")
 
 
-class UpdateUserProfileView(generics.UpdateAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user.userprofile
     
     
     
@@ -213,3 +221,55 @@ class UserLogout(APIView):
         }
         
         return response
+    
+class UserProfileUpdate(APIView):
+    def post(self,request,id):
+        username = request.data.get('username')
+        location = request.data.get('location')
+        bio = request.data.get('bio')
+        profile_photo = request.FILES.get('profile_photo')
+        cover_photo = request.FILES.get('cover_photo')
+        date_of_birth = request.data.get('date_of_birth')
+        
+        print("given data--",username,bio,location,date_of_birth)
+        print("Given Photos",profile_photo,"---------",cover_photo)
+        
+        user_profile = UserProfile.objects.filter(id=id).first()
+        
+        if user_profile:
+            user_profile.user.username = username
+            user_profile.location = location
+            user_profile.date_of_birth = date_of_birth
+            user_profile.bio = bio
+            if "profile_photo" in request.FILES:
+                user_profile.profile_image = profile_photo
+                
+            if "cover_photo" in request.FILES:
+                user_profile.cover_photo = cover_photo
+                
+            user_profile.save()
+            user_profile.user.save()
+                
+                
+            return Response({"message":"User Updated Successfully"})
+        
+        else:
+            return Response({"Error":"User Not Found"})
+
+
+
+class PostAdd(APIView):
+    def post(self,request):
+        post_serializer = PostSerializer(data=request.data)
+        if post_serializer.is_valid():
+            post = post_serializer.save(user=request.user)
+            for image in request.FILES.getlist('images'):
+                PostImagesSerializer(data={'post': post.id, 'image_url': image}).save()
+            return Response(post_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)     
+        
+        
+
+        
+            

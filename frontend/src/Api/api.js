@@ -13,6 +13,10 @@ export const userProfileApi = (userId) => axios.get(`${BASE_URL}/userdata/${user
 
 export const logoutApi = () => axios.post(`${BASE_URL}/logout/`)
 
+export const httpRequest = (url, data) => {
+    return axios.post(url, data);
+};
+
 
 
 

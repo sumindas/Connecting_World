@@ -17,15 +17,15 @@ function Login() {
   const token = useSelector((state)=>state.auth.token)
 
 
-  // useEffect(()=>{
-  //   if(token){
-  //     console.log("Token:",token)
-  //     console.log( 'Authorization:',token.jwt)
-  //     navigate('/home')
-  //   } else{
-  //     navigate('/')
-  //   }
-  // },[token,navigate])
+  useEffect(()=>{
+    if(token){
+      console.log("Token:",token)
+      console.log( 'Authorization:',token.jwt)
+      navigate('/home/profile')
+    } else{
+      navigate('/')
+    }
+  },[token,navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault();
