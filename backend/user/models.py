@@ -45,15 +45,19 @@ class UserProfile(models.Model):
         return self.user.username
     
 class Post(models.Model):
-    user = models.ForeignKey(CustomUser,on_delete = models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
-    tags = models.TextField()
-    location = models.CharField(max_length=100)
-    created_at = models.DateTimeField(default = timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
+    likes = models.ManyToManyField(CustomUser, related_name='post_likes', blank=True)
+    images = models.ManyToManyField('PostImage', related_name='post_images', blank=True)
     
-    
-class Post_Images(models.Model):
-    post = models.ForeignKey(Post,on_delete = models.CASCADE)
-    image_url = models.ImageField(upload_to='post_imgs/')
 
+    def __str__(self):
+        return f'{self.user.username} - {self.created_at}'
+
+class PostImage(models.Model):
+    image = models.ImageField(upload_to='post_images/')
+
+    def __str__(self):
+        return f'{self.image}'
 

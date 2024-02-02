@@ -120,7 +120,45 @@ class Verify_Otp(APIView):
                 'status': 500,
                 'message': 'Internal Server Error'
             })
-            
+
+
+class ResendOtpView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            email = request.data.get('email')
+
+            if email:
+                user = CustomUser.objects.filter(email__iexact=email)
+
+                if user.exists():
+                    user = user.first()
+                    new_otp = send_otp_email(email)
+                    user.otp = new_otp
+                    user.save()
+
+
+                    return Response({
+                        'message': 'New OTP sent successfully',
+                        'status': status.HTTP_200_OK,
+                    })
+
+                else:
+                    return Response({
+                        'message': 'User not found ! Please register',
+                        'status': status.HTTP_404_NOT_FOUND,
+                    })
+
+            else:
+                return Response({
+                    'message': 'Email is required',
+                    'status': status.HTTP_400_BAD_REQUEST,
+                })
+
+        except Exception as e:
+            return Response({
+                'message': str(e),
+                'status': status.HTTP_400_BAD_REQUEST,
+            })      
 
 class LoginView(APIView):
     
@@ -170,6 +208,9 @@ class LoginView(APIView):
         return response
     
 
+            
+            
+            
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     
@@ -223,51 +264,79 @@ class UserLogout(APIView):
         return response
     
 class UserProfileUpdate(APIView):
-    def post(self,request,id):
+    def post(self, request, user_id):  # sourcery skip: extract-duplicate-method
         username = request.data.get('username')
         location = request.data.get('location')
         bio = request.data.get('bio')
         profile_photo = request.FILES.get('profile_photo')
         cover_photo = request.FILES.get('cover_photo')
         date_of_birth = request.data.get('date_of_birth')
-        
-        print("given data--",username,bio,location,date_of_birth)
-        print("Given Photos",profile_photo,"---------",cover_photo)
-        
-        user_profile = UserProfile.objects.filter(id=id).first()
-        
-        if user_profile:
-            user_profile.user.username = username
-            user_profile.location = location
-            user_profile.date_of_birth = date_of_birth
-            user_profile.bio = bio
-            if "profile_photo" in request.FILES:
-                user_profile.profile_image = profile_photo
-                
-            if "cover_photo" in request.FILES:
-                user_profile.cover_photo = cover_photo
-                
-            user_profile.save()
-            user_profile.user.save()
-                
-                
-            return Response({"message":"User Updated Successfully"})
-        
+
+        print("given data--", username, bio, location, date_of_birth)
+        print("Given Photos", profile_photo, "---------", cover_photo)
+
+        user = CustomUser.objects.filter(id=user_id).first()
+
+        if user:
+            user.username = username
+            user.save()
+
+            user_profile = UserProfile.objects.filter(user=user).first()
+
+            if user_profile:
+                user_profile.location = location
+                user_profile.date_of_birth = date_of_birth
+                user_profile.bio = bio
+
+                if "profile_photo" in request.FILES:
+                    user_profile.profile_image = profile_photo
+
+                if "cover_photo" in request.FILES:
+                    user_profile.cover_photo = cover_photo
+
+                user_profile.save()
+
+                return Response({"message": "User Updated Successfully"})
+
+
+            else:
+                new_user_profile = UserProfile.objects.create(
+                    user=user,
+                    location=location,
+                    date_of_birth=date_of_birth,
+                    bio=bio,
+                )
+
+                if "profile_photo" in request.FILES:
+                    new_user_profile.profile_image = profile_photo
+
+                if "cover_photo" in request.FILES:
+                    new_user_profile.cover_photo = cover_photo
+
+                new_user_profile.save()
+
+                return Response({"message": "New User Created Successfully"}, status=status.HTTP_201_CREATED)
+
         else:
-            return Response({"Error":"User Not Found"})
+            return Response({"Error": "User Not Found"})
+           
 
 
 
-class PostAdd(APIView):
-    def post(self,request):
-        post_serializer = PostSerializer(data=request.data)
-        if post_serializer.is_valid():
-            post = post_serializer.save(user=request.user)
-            for image in request.FILES.getlist('images'):
-                PostImagesSerializer(data={'post': post.id, 'image_url': image}).save()
-            return Response(post_serializer.data, status=status.HTTP_201_CREATED)
+class PostCreateAPIView(APIView):
+    
+    def post(self,request,*args,**kwargs):
+        data = request.data.dict()
+        data['user'] = request.user.id  
+        
+        serializer = PostSerializer(data=request.data,context={'request':request} )   
+        
+        if serializer.is_valid():
+            print("Serializer:",serializer)
+            serializer.save()
+            return Response(serializer.data,status = status.HTTP_201_CREATED)
         else:
-            return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)     
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
         
         
 

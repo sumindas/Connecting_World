@@ -94,7 +94,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
    'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'project_2',
+        'NAME': 'connecting_world',
         'USER': 'postgres',
         'PASSWORD': 'sumindasvr',
         'HOST':'localhost',

@@ -41,15 +41,29 @@ class GoogleSerializers(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'bio',  'date_of_birth', 'location','phone','profile_image','cover_photo']
+        fields = ['id', 'bio',  'date_of_birth', 'location','profile_image','cover_photo']
 
+
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostImage
+        fields = ('image',)
+        
 
 class PostSerializer(serializers.ModelSerializer):
+    images = PostImageSerializer(many=True)
+    
+    
     class Meta:
         model = Post
-        fields = ['user', 'content', 'tags', 'location']
-
-class PostImagesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post_Images
-        fields = ['post', 'image_url']
+        fields = ['user','content','created_at','likes','images']
+        
+        def create(self,validated_data):
+            images_data = validated_data.pop('images')
+            
+            post = Post.objects.create(**validated_data)
+            
+            for image_data in images_data:
+                PostImage.objects.create(post=post,**image_data)
+                
+            return post

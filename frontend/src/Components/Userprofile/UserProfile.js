@@ -46,7 +46,7 @@ export default function UserProfile() {
         const userData = response.data;
         setUserData(userData);
         dispatch(setUser(userData));
-        setuserProfileId(userData.user_profile.id)
+        setuserProfileId(userData.user.id)
         setUsername(userData?.user?.username || "");
         setLocation(userData?.user_profile?.location || "");
         setBio(userData?.user_profile?.bio || "");
@@ -80,6 +80,7 @@ export default function UserProfile() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form")
   
     const formData = new FormData();
     formData.append('username', username);
@@ -144,7 +145,8 @@ export default function UserProfile() {
             alt=""
           />
         ) : (
-          <input type="file" id="file-input" name="cover_photo" />
+          <img src="" alt="No cover Photo" />
+      
         )}
       </div>
       <div className="profile-info">
@@ -156,7 +158,7 @@ export default function UserProfile() {
             alt=""
           />
         ) : (
-          <input type="file" id="file-input" name="profile_image" />
+          <img src="" alt="No Profile Photo" />
         )}
 
         <div className="user-name">
