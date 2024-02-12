@@ -6,57 +6,51 @@ import { verifyOtpAsync } from '../../Redux/Actions/authActions';
 import './verify.css';
 import axios from 'axios';
 
-
 const Verification = () => {
  const dispatch = useDispatch();
  const navigate = useNavigate();
  const authError = useSelector((state) => state.auth.error);
  const [otp, setOtp] = useState('');
- const [resendTime, setResendTime] = useState(60);
- const [canResend, setCanResend] = useState(true);
+ const [resendTime, setResendTime] = useState(60); // Initialize to 60 seconds
+ const [canResend, setCanResend] = useState(false); // Initially set to false
  const email = useSelector((state) => state.auth.email);
 
  const handleVerify = async (e) => {
     e.preventDefault();
     dispatch(clearError());
     dispatch(verifyOtpAsync(email, otp, navigate));
-    setResendTime(60);
-    setCanResend(false);
+    setResendTime(60); // Reset the countdown to 60 seconds
+    setCanResend(false); // Start the countdown
  };
 
  const handleResend = async () => {
-  try {
-      // Call your API to resend the OTP here
-      const response = await axios.post('/resend-otp/', { email: email });
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/resend_otp/', { email: email });
       if (response.status === 200) {
-          // After successfully resending, start the countdown
-          setResendTime(60);
-          setCanResend(false);
+        setResendTime(30); 
+        setCanResend(false);
       } else {
-          // Handle error response
-          console.log(response.data.message || 'Failed to resend OTP.');
+        console.log(response.data.message || 'Failed to resend OTP.');
       }
-  } catch (error) {
-      // Handle network error
+    } catch (error) {
       console.log('Network error, please try again.');
-  }
-};
-
+    }
+ };
 
  useEffect(() => {
-    if (canResend) {
-      const intervalId = setInterval(() => {
-        setResendTime((prevTime) => prevTime - 1);
+    let intervalId;
+
+    if (!canResend) { 
+      intervalId = setInterval(() => {
+        setResendTime((prevTime) => (prevTime === 0 ? 0 : prevTime - 1));
+        if (resendTime === 0) {
+          setCanResend(true); 
+        }
       }, 1000);
-      return () => clearInterval(intervalId);
     }
- }, [canResend]);
 
- useEffect(() => {
-    if (!canResend && resendTime === 0) {
-      setCanResend(true);
-    }
- }, [resendTime, canResend]);
+    return () => clearInterval(intervalId);
+ }, [canResend, resendTime]); 
 
  return (
     <div className="verification">
@@ -70,7 +64,11 @@ const Verification = () => {
           <input type="text" name='email' value={email} readOnly />
           <input type="text" name="otp" value={otp} onChange={(e) => setOtp(e.target.value)} />
           <button className='btn verify-btn' type='submit'>Verify</button>
-          {canResend && <button onClick={handleResend} disabled={!canResend}>Resend OTP ({resendTime})</button>}
+          {canResend && (
+            <button className='btn btn-red' onClick={handleResend} disabled={!canResend}>
+              Resend OTP ({resendTime})
+            </button>
+          )}
           {authError && <p style={{ color: 'red', textAlign: 'center' }}>{authError}</p>}
         </form>
       </div>

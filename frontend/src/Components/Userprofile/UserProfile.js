@@ -31,6 +31,7 @@ export default function UserProfile() {
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [coverPhoto, setCoverPhoto] = useState(null);
   const [userProfileId,setuserProfileId] = useState()
+ 
 
   useEffect(() => {
     if(token){

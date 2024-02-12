@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'rest_framework',
     'user',
     'corsheaders',
@@ -56,12 +57,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
 
@@ -78,6 +79,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'allauth.socialaccount.context_processors.socialaccount',
             ],
         },
     },
@@ -94,7 +96,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
    'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'connecting_world',
+        'NAME': 'social_project',
         'USER': 'postgres',
         'PASSWORD': 'sumindasvr',
         'HOST':'localhost',
@@ -103,6 +105,16 @@ DATABASES = {
 }
 
 SITE_ID = 1
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com',
+            'secret': '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',
+        }
+    }
+}
+
 
 
 # Password validation
@@ -150,22 +162,32 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 
-
-
-
-
-
 CORS_ALLOW_CREDENTIALS = True
-
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 ROOT_URLCONF = 'backend.urls'
-
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_HEADERS = [
-    'Content-Type',
-    'content-disposition',
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 CORS_ALLOWED_ORIGINS = [
   
     'http://localhost:3000',
@@ -178,11 +200,8 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3000'
-
 ]
-SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
 
-SECURE_REFERRER_POLICY = 'same-origin'
 
 
 
@@ -202,4 +221,5 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social:auth'
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
+APPEND_SLASH=False
 

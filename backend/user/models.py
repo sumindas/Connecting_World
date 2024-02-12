@@ -35,7 +35,7 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
-    phone = PhoneNumberField(unique=True, blank=True)
+    phone = PhoneNumberField(unique=False, blank=True)
     followers = models.ManyToManyField(CustomUser, related_name='following', blank=True)
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     cover_photo = models.ImageField(upload_to='cover_photos/', blank=True, null=True)
@@ -48,16 +48,63 @@ class Post(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)
-    likes = models.ManyToManyField(CustomUser, related_name='post_likes', blank=True)
-    images = models.ManyToManyField('PostImage', related_name='post_images', blank=True)
+    is_deleted = models.BooleanField(default=False)
     
 
     def __str__(self):
         return f'{self.user.username} - {self.created_at}'
 
 class PostImage(models.Model):
-    image = models.ImageField(upload_to='post_images/')
+    post = models.ForeignKey(Post,on_delete=models.CASCADE)
+    images_url = models.ImageField(upload_to='post_images/')
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.image}'
+        return f'{self.images_url}'
+    
+
+
+class PostVideo(models.Model):
+    post = models.ForeignKey(Post,on_delete=models.CASCADE)
+    video_url = models.FileField(upload_to='post_videos/')
+    is_deleted = models.BooleanField(default=False)
+    
+    
+    def __str__(self):
+        return f'{self.video_url}'
+    
+
+class Like(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.user.username} likes {self.post}'
+    
+class Dislike(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.user.username} dislikes {self.post}'
+
+class Comment(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.user.username} commented on {self.post}'
+
+class Reply(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.user.username} replied to {self.comment}'
 

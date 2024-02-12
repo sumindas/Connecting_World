@@ -3,7 +3,7 @@ from django.http import JsonResponse,HttpResponse
 from rest_framework.views import APIView
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,viewsets
 from user.models import *
 from .serializer import *
 from rest_framework.permissions import AllowAny
@@ -19,14 +19,16 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
-from django.contrib.auth import get_user_model
 from django.utils import timezone
-from rest_framework.decorators import api_view
-
-
-
+from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser
+from django.core.exceptions import ValidationError
+from django.db.models import Prefetch
+from django.shortcuts import get_object_or_404
 
 
 
@@ -84,7 +86,9 @@ class Verify_Otp(APIView):
             print("Request.Data:",request.data)
             email = data.get('email')
             otp = data.get('otp')
-            if not email or not otp:
+            if not email:
+                return Response({'error':'Email Not Found Please Register Again'},status=status.HTTP_400_BAD_REQUEST)
+            if not otp:
                 return Response({'error':'Please enter otp'},status=status.HTTP_400_BAD_REQUEST)
             print("Otp:",otp,"---------","email:",email)
             serializer = VerifyUserSerializer(data=data)
@@ -213,9 +217,30 @@ class LoginView(APIView):
             
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    
-    def perform_login(self,serializer,user,*args,**kwargs):
-        super().perform_login(self,serializer,user,*args,**kwargs)
+
+    def perform_login(self, serializer, user, *args, **kwargs):
+        existing_user = CustomUser.objects.filter(email=user.email).first()
+       
+        if not existing_user:
+           
+            user_data = {
+                'email': user.email,
+                'username': user.username,
+                'full_name': user.full_name,
+            }
+
+            serializer = CustomUserSerializer(data=user_data)
+
+            try:
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                serializer.instance.is_verified = True
+                serializer.instance.save()
+            except Exception as e:
+                
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        super().perform_login(serializer, user, *args, **kwargs)
         user.is_verified = True
         user.save()
 
@@ -324,21 +349,207 @@ class UserProfileUpdate(APIView):
 
 
 class PostCreateAPIView(APIView):
-    
-    def post(self,request,*args,**kwargs):
-        data = request.data.dict()
-        data['user'] = request.user.id  
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, id, *args, **kwargs):
+        print("Adding Post")
+        try:
+            user = CustomUser.objects.get(id=id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer = PostSerializer(data=request.data,context={'request':request} )   
-        
+        serializer = PostSerializer(data=request.data)
+        print(serializer.is_valid())
         if serializer.is_valid():
-            print("Serializer:",serializer)
-            serializer.save()
-            return Response(serializer.data,status = status.HTTP_201_CREATED)
+            validated_data = serializer.validated_data
+            print("Validated_data:",validated_data)
+            validated_data['user'] = user
+            post = serializer.save(**validated_data)
+            print("----",request.data)
+            try:
+                images_data = request.FILES.getlist('images[0]')
+                for image in images_data:
+                    PostImage.objects.create(post=post, images_url=image)
+
+                videos_data = request.FILES.getlist('videos[0]')
+                for video in videos_data:
+                    PostVideo.objects.create(post=post, video_url=video)
+
+                post_serialized = PostSerializer(post)
+                print("Received files:", request.FILES)
+                print(post_serialized)
+                return Response(post_serialized.data, status=status.HTTP_201_CREATED)
+            except ValidationError as ve:
+                print("Validation Error:", ve)
+                return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print("Unexpected Error:", e)
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-        
-        
+            print("Error:",serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         
-            
+class UserPostListAPIView(APIView):
+    """
+    API View to list all posts created by a specific user.
+    """
+    def get(self, request, user_id, format=None):
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        posts = Post.objects.filter(user=user,is_deleted=False).prefetch_related(
+            Prefetch('postimage_set'),
+            Prefetch('postvideo_set')
+        )
+        print("Posts:",posts)
+        serializer = PostSerializer(posts, many=True)
+        print(serializer.data)
+        return Response(serializer.data)
+    
+    
+
+
+# class LikeViewSet(viewsets.ModelViewSet):
+#     serializer_class = LikeSerializer
+    
+#     @action(detail=False, methods=['get'])
+#     def liked_by_current_user(self, request, *args, **kwargs):
+#         """
+#         Custom action to check if the current user has liked a post.
+#         """
+#         post_id = request.query_params.get('postId')
+#         user_id = request.query_params.get('userId')
+#         if post_id is not None and user_id is not None:
+#             post = get_object_or_404(Post,id=post_id)
+#             user = get_object_or_404(CustomUser,id=user_id)
+#             like = Like.objects.filter(user=user, post=post).first()
+#             return Response({
+#                 'count': Like.objects.filter(post=post).count(),
+#                 'likedByUser': bool(like),
+#             }, status=status.HTTP_200_OK)
+#         else:
+#             return Response({'detail': 'Missing parameters: postId and userId'}, status=status.HTTP_400_BAD_REQUEST)
+
+#     def list(self, request, *args, **kwargs):
+#         """
+#         Overridden to return only the count of likes for a specific post.
+#         """
+#         return self.liked_by_current_user(request, *args, **kwargs)
+#     def create(self, request, *args, **kwargs):
+#         """
+#         Override the create method to handle like creation.
+#         """
+#         print("creating Like")
+#         user_id = request.data.get('userId')
+#         print("userid:",user_id)
+#         try:
+#             user = CustomUser.objects.get(id=user_id)
+#         except CustomUser.DoesNotExist:
+#             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+#         post_id = request.data.get('postId')
+#         if post_id is not None:
+#             post = Post.objects.get(id=post_id) # Assuming you have a Post model
+#             like, created = Like.objects.get_or_create(user=user, post=post)
+#             if created:
+#                 return Response({'message': 'Like created.'}, status=status.HTTP_201_CREATED)
+#             else:
+#                 return Response({'message': 'Like already exists.'}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({'detail': 'Missing parameter: postId'}, status=status.HTTP_400_BAD_REQUEST)
+
+class LikeAPIView(APIView):
+    serializer_class = LikeSerializer
+
+    def get(self, request, *args, **kwargs):
+        """
+        Overridden to return only the count of likes for a specific post.
+        """
+        return self.liked_by_current_user(request, *args, **kwargs)
+
+    def liked_by_current_user(self, request):
+        """
+        Custom action to check if the current user has liked a post.
+        """
+        post_id = request.query_params.get('postId')
+        user_id = request.query_params.get('userId')
+        if post_id is not None and user_id is not None:
+            post = get_object_or_404(Post, id=post_id)
+            user = get_object_or_404(CustomUser, id=user_id)
+            like = Like.objects.filter(user=user, post=post).first()
+            return Response({
+                'count': Like.objects.filter(post=post).count(),
+                'likedByUser': bool(like),
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'Missing parameters: postId and userId'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Override the create method to handle like creation.
+        """
+        user_id = request.data.get('userId')
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        post_id = request.data.get('postId')
+        if post_id is not None:
+            post = Post.objects.get(id=post_id)
+            like, created = Like.objects.get_or_create(user=user, post=post)
+            if created:
+                return Response({'message': 'Like created.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'message': 'Like already exists.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'Missing parameter: postId'}, status=status.HTTP_400_BAD_REQUEST)     
+        
+
+
+
+class PostUpdateAPIView(APIView):
+    
+    print("------------")
+    
+    def process_files(self, post, images_data, videos_data):
+        for image in images_data:
+            PostImage.objects.create(post=post, images_url=image)
+
+        for video in videos_data:
+            PostVideo.objects.create(post=post, video_url=video)
+
+    def put(self, request, post_id, *args, **kwargs):
+        print(request.data)
+        post = get_object_or_404(Post, id=post_id, *args, **kwargs)
+        serializer = PostSerializer(post, data=request.data)
+        
+        print(serializer.is_valid())
+
+        if serializer.is_valid():
+            try:
+                images_data = request.FILES.getlist('images')
+                videos_data = request.FILES.getlist('videos')
+
+                # Process files
+                self.process_files(post, images_data, videos_data)
+
+                # Save the updated content
+                serializer.save()
+
+                post_serialized = PostSerializer(post)
+                return Response(post_serialized.data, status=status.HTTP_200_OK)
+            except ValidationError as ve:
+                return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    
+    def delete(self, request, post_id, *args, **kwargs):
+        post = get_object_or_404(Post, id=post_id, *args, **kwargs)
+        post.is_deleted = True
+        post.save()
+        return Response({"message": "Post deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

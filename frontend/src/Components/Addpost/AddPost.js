@@ -2,53 +2,58 @@ import React, { useState } from "react";
 import "./addpost.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faImage,
-  faSmile,
-  faTags,
-  faVideo,
+  faImage, faVideo,
 } from "@fortawesome/free-solid-svg-icons";
+import data from '@emoji-mart/data'
+import { Picker } from "emoji-mart";
 import axios from "axios";
 import { BASE_URL } from "../../Api/api";
 import { useDispatch, useSelector } from "react-redux";
 import { addPost } from "../../Redux/Slice/postSlice";
 
-export default function AddPost() {
+export default function AddPost({ onNewPost }) {
   const [content, setContent] = useState("");
-  const [tags, setTags] = useState("");
-  const [location, setLocation] = useState(""); // Add location state
-  const [feelings, setFeelings] = useState("");
+  const [videos,setVideos] = useState([])
   const [images, setImages] = useState([]);
+  const [showEmojiPicker,setShowEmojiPicker] = useState(false)
   const dispatch = useDispatch();
   const CurrentUserData = useSelector((state) => state.auth.user);
-  const userProfile = CurrentUserData?.user_profile;
-  console.log("userProfile", userProfile);
-
-  const profileImage = userProfile?.profile_image;
-  console.log("Image:", profileImage);
+  const userId = CurrentUserData?.user?.id
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
     formData.append("content", content);
-    formData.append("tags", tags);
-    formData.append("location", location); // Add location to the form data
-    formData.append("feelings", feelings);
+
+    videos.forEach((video,index)=>{
+      formData.append(`videos[${index}]`,video)
+    })
     images.forEach((image, index) => {
       formData.append(`images[${index}]`, image);
     });
 
     try {
-      const response = await axios.post(`${BASE_URL}/addpost/`, formData, {
+      formData.append("user", userId);
+      const response =  await axios.post(`${BASE_URL}/addpost/${userId}/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      dispatch(addPost(response.data));
+      console.log(response)
+        onNewPost(response.data)
+        setContent("");
+        setVideos([]);
+        setImages([]);
+        dispatch(addPost({ userId, post : response.data }));
     } catch (error) {
       console.error("Error creating post:", error);
     }
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    setContent(content + emoji.native);
   };
 
   return (
@@ -68,43 +73,53 @@ export default function AddPost() {
           placeholder="What's on your mind"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          onFocus={() => setShowEmojiPicker(false)}
         />
+        <span
+        role="img"
+        aria-label="emoji-picker"
+        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+        style={{ cursor: 'pointer' }}
+      >
+        😀
+      </span>
+      {showEmojiPicker && (
+        <div style={{ position: 'absolute', zIndex: '1' }}>
+          <Picker onSelect={handleEmojiSelect} />
+        </div>
+      )}
         <button type="submit" className="btn btn-primary">
           Post
         </button>
       </div>
       <div className="post-categories">
         <label htmlFor="images">
-        <input
-  type="file"
-  id="images"
-  multiple
-  onChange={(e) => setImages(Array.from(e.target.files))}
-/>
+          <input
+            type="file"
+            id="images"
+            multiple
+            onChange={(e) => setImages(Array.from(e.target.files))}
+          />
 
           <span>
             <FontAwesomeIcon icon={faImage} />
             Photos
           </span>
         </label>
-        <input
-          type="text"
-          placeholder="Tags"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Feelings"
-          value={feelings}
-          onChange={(e) => setFeelings(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
+        <label htmlFor="videos">
+          <input
+            type="file"
+            id="videos"
+            multiple
+            onChange={(e) => setVideos(Array.from(e.target.files))}
+          />
+
+          <span>
+            <FontAwesomeIcon icon={faVideo} />
+            Videos
+          </span>
+        </label>
+        
       </div>
     </form>
   );

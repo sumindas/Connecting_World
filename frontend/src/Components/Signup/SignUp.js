@@ -24,7 +24,7 @@ export const SignUp = () => {
 
   const handleGoogleSignIn =(googleToken,navigate) => async (response) => {
     try {
-      const response = await httpRequest(`${BASE_URL}/rest-auth/google/`, { token: googleToken });
+      const response = await httpRequest(`${BASE_URL}/google/`, { token: googleToken });
       console.log("Google:",response)
       navigate('/home/profile')
   } catch (error) {
@@ -59,7 +59,7 @@ export const SignUp = () => {
           <input type="text" placeholder="Fullname" value={userData.full_name} onChange={(e) => setUserData({ ...userData, full_name: e.target.value })} />
           <input type="text" placeholder="Username" value={userData.username} onChange={(e) => setUserData({ ...userData, username: e.target.value })} />
           <input type="password" placeholder="password" value={userData.password} onChange={(e) => setUserData({ ...userData, password: e.target.value })} />
-          {authError && <p style={{ color: 'red', textAlign: 'center' }}>{authError}</p>}
+          {authError && <p style={{ color: 'white', textAlign: 'center' }}>{authError}</p>}
           <button className='btn register-btn' type='submit'>Register</button>
           <GoogleOAuthProvider clientId="73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com">
             <GoogleLogin  className="google-btn" buttonText="SignUp with Google"onSuccess={handleGoogleSignIn}

@@ -1,17 +1,23 @@
-import React from 'react'
-import Feed from './Feed'
+// Feeds.js
+import React from 'react';
+import Feed from './Feed';
+import {  useSelector } from 'react-redux';
 
-import HomeFeedData from '../../FackApis/HomeFeedData'
 
-export default function Feeds() {
+export default function Feeds({feeds}) {
+  const userId = useSelector((state) => state.auth.user?.user?.id);
+  const posts = useSelector((state) => state.post);
+  console.log("----",posts)
+  console.log("User", userId);
+  
+
   return (
-      <div className="feeds">
-        {
-            HomeFeedData.map(fed=>(
-                <Feed fed = {fed} key = {fed.key} />
-            ))
-        }
-      </div>
-    
-  )
+    <>
+    <div className="feeds">
+      {feeds.map((feed) => (
+        <Feed key={feed.id} post={feed} />
+      ))}
+    </div>
+    </>
+  );
 }
