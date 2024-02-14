@@ -18,6 +18,7 @@ urlpatterns = [
     path('userdata/',userView.as_view(),name='userdata'),
     path('logout/',UserLogout.as_view(),name='logout'),
     path('google/', GoogleLogin.as_view(),name='google_login'),
+    path('userprofile/<int:user_id>/', UserProfileDetailView.as_view(), name='userprofile-detail'),
     path('userupdate/<int:user_id>/',UserProfileUpdate.as_view(),name='userupdate'),
     path('addpost/<int:id>/',PostCreateAPIView.as_view(),name='postadd'),
     path('posts/<int:user_id>/',UserPostListAPIView.as_view(),name='posts'),
@@ -27,7 +28,7 @@ urlpatterns = [
     path('posts/<int:post_id>/comments/', CommentListAPIView.as_view(), name='comment-list'),
     path('posts/<int:post_id>/comments/create/<int:user_id>/', CommentListAPIView.as_view(), name='comment-create'),
     path('users/search/',UserSearchAPIView.as_view(),name='user-search'),
-
+    path('following/<int:user_id>/',FollowingAPIView.as_view(),name='following'),
 ]
 
 if settings.DEBUG:

@@ -45,6 +45,7 @@ export default function Feed({ post,onRemovePost,onEditPost }) {
             "Content-Type": "application/json",
           },
         });
+        console.log("LikedByuser:",response.data.likedByUser)
         setLikeCount(response.data.count);
         setLikedByUser(response.data.likedByUser);
         setLiked(response.data.likedByUser);
@@ -230,7 +231,7 @@ export default function Feed({ post,onRemovePost,onEditPost }) {
                     className="fixed inset-0 transition-opacity"
                     aria-hidden="true"
                   >
-                    <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                    <div className="absolute inset-0 bg-gray-500 opacity-0"></div>
                   </div>
                 </Transition.Child>
 

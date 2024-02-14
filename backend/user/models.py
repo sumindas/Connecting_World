@@ -125,6 +125,7 @@ class Following(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Followed'
     )
+    is_active = models.BooleanField(default=False, verbose_name='Active')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

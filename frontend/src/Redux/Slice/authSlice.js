@@ -11,7 +11,7 @@ const authSlice = createSlice({
         login : false,
         token : "",
         admin_token : "",
-        allUsers : []
+        allUsers : [],
     },
     reducers :{
         setUser : (state,action) => {

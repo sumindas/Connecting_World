@@ -13,11 +13,10 @@ import NavBar from '../NavBar/NavBar'
 import LeftBar from '../LeftBar/LeftBar'
 import RightBar from '../RightBar/RightBar'
 import Verification from '../Verification/Verify'
-import UserProfileSettings from '../Profile/UserProfileSettings'
 import AdminLogin from '../Admin/Pages/login'
 import AdminHome from '../Admin/Pages/AdminHome'
-import UsersList from '../Admin/Pages/UsersList'
 import Users from '../Admin/Pages/Users'
+import OtherUser from '../Userprofile/otherUserProfile'
 
 
 export default function LayOut() {
@@ -85,8 +84,8 @@ export default function LayOut() {
           element: <ChatBox />
         },
         {
-          path: 'profileSettings', 
-          element: <UserProfileSettings />
+          path: 'user/:id', 
+          element: <OtherUser />
         },
       ]
     }

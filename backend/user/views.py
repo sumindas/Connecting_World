@@ -289,6 +289,18 @@ class UserLogout(APIView):
         
         return response
     
+    
+class UserProfileDetailView(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    def get_object(self):
+        user_id = self.kwargs['user_id']
+        try:
+            return CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+    
 class UserProfileUpdate(APIView):
     def post(self, request, user_id):  # sourcery skip: extract-duplicate-method
         username = request.data.get('username')
@@ -572,35 +584,79 @@ class CommentListAPIView(generics.ListCreateAPIView):
         serializer.save(post=post, user=user)
     
 
-class FollowingViewSet(viewsets.ModelViewSet):
-    queryset = Following.objects.all()
-    serializer_class = FollowingSerializer
-    permission_classes = [IsAuthenticated]
+# class FollowingViewSet(viewsets.ModelViewSet):
+#     queryset = Following.objects.all()
+#     serializer_class = FollowingSerializer
     
-    def get_queryset(self,user_id):
+#     def get_queryset(self,user_id):
+#         try:
+#             user = CustomUser.objects.get(id=user_id)
+#         except CustomUser.DoesNotExist:
+#             return Response({'error':"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
+#         return self.queryset.filter(Q(follower=user) | Q(followed=user))
+    
+#     def create(self, request, *args, **kwargs):
+#         try:
+#             followed_user_id = request.data.get('followed')
+#             followed_user = CustomUser.objects.get(id=followed_user_id)
+
+#             # Prevent self-following
+#             if request.user == followed_user:
+#                 return Response({"error": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+#             Following.objects.create(follower=request.user, followed=followed_user)
+#             return Response({"message": "You are now following this user."}, status=status.HTTP_201_CREATED)
+
+#         except CustomUser.DoesNotExist:
+#             return Response({"error": "User to follow not found."}, status=status.HTTP_404_NOT_FOUND)
+#         except KeyError:
+#             return Response({"error": "'followed' field is required."}, status=status.HTTP_400_BAD_REQUEST)
+class FollowingAPIView(APIView):
+
+    def get(self, request, user_id):
         try:
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
-            return Response({'error':"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
-        return self.queryset.filter(Q(follower=user) | Q(followed=user))
-    
-    def create(self, request, *args, **kwargs):
+            return Response({'error': "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+        following = Following.objects.filter(Q(follower=user) | Q(followed=user))
+        serializer = FollowingSerializer(following, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, user_id):
+        print("------ffff----------")
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error': "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             followed_user_id = request.data.get('followed')
             followed_user = CustomUser.objects.get(id=followed_user_id)
 
-            # Prevent self-following
-            if request.user == followed_user:
+       
+            if user == followed_user:
                 return Response({"error": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
 
-            Following.objects.create(follower=request.user, followed=followed_user)
-            return Response({"message": "You are now following this user."}, status=status.HTTP_201_CREATED)
+        
+            following_relationship, created = Following.objects.get_or_create(
+            follower=user,
+            followed=followed_user,
+            defaults={'is_active': False}  
+        )
+
+        
+            following_relationship.is_active = not following_relationship.is_active
+            following_relationship.save()
+
+        
+            message = "You are now following this user." if following_relationship.is_active else "You have unfollowed this user."
+
+            return Response({"message": message}, status=status.HTTP_200_OK)
 
         except CustomUser.DoesNotExist:
             return Response({"error": "User to follow not found."}, status=status.HTTP_404_NOT_FOUND)
         except KeyError:
             return Response({"error": "'followed' field is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         
 class UserSearchAPIView(generics.GenericAPIView):
     serializer_class = CustomUserSerializer
@@ -608,9 +664,10 @@ class UserSearchAPIView(generics.GenericAPIView):
     def get(self,request,*args,**kwargs):
         queryset = CustomUser.objects.all()
         username = request.query_params.get('username','')
+        print(username)
         
         if username:
-            queryset = queryset.filter(Q(username__iconatins=username))
+            queryset = queryset.filter(Q(username__icontains=username))
             
         serializer = self.get_serializer(queryset,many=True)
         

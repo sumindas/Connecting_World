@@ -20,7 +20,8 @@ export default function Profile() {
   const updateFeed = useCallback((newPost) => {
     console.log('Before update:', feeds);
     setFeeds((currentFeeds) => {
-      const updatedFeeds = [newPost, ...currentFeeds];
+      const updatedPost = { ...newPost, likedByUser: false };
+      const updatedFeeds = [updatedPost, ...currentFeeds];
       console.log('After update:', updatedFeeds);
       return updatedFeeds;
     });
@@ -59,7 +60,7 @@ export default function Profile() {
   },[])
   
 
-  return (
+  return ( 
     <>
       <UserProfile />
       <AddPost onNewPost={updateFeed}/>
