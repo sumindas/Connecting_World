@@ -4,7 +4,14 @@ from rest_framework.validators import UniqueValidator
 from rest_framework.authentication import BaseAuthentication
 
 
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'bio', 'date_of_birth', 'location','profile_image','cover_photo']
+        
 class CustomUserSerializer(serializers.ModelSerializer):
+    userprofile = UserProfileSerializer(read_only=True)
     email = serializers.EmailField(
     required = True,
     validators = [UniqueValidator(queryset=CustomUser.objects.all(),message="Email Already Exists")]
@@ -12,7 +19,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['id','username','password','full_name','email','ph_no','is_verified']
+        fields = ['id','username','password','full_name','email','ph_no','is_verified','userprofile']
         extra_kwargs = {
             'password': {'write_only':True}
         }
@@ -38,10 +45,7 @@ class GoogleSerializers(serializers.ModelSerializer):
         fields = ['username', 'full_name', 'email']
         
         
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['id', 'bio',  'date_of_birth', 'location','profile_image','cover_photo']
+
 
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,6 +61,7 @@ class PostVideoSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     images = PostImageSerializer(source = 'postimage_set', many=True, read_only = True,required=False)
     videos = PostVideoSerializer(source='postvideo_set',many=True,read_only = True,required=False)
+    user = CustomUserSerializer(read_only=True)
 
     class Meta:
         model = Post
@@ -96,11 +101,23 @@ class DislikeSerializer(serializers.ModelSerializer):
         fields = ['user', 'post', 'created_at']
 
 class CommentSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+    post = PostSerializer(read_only = True)
     class Meta:
         model = Comment
-        fields = ['user', 'post', 'content', 'created_at']
+        fields = ['id','user', 'post', 'content', 'created_at']
 
 class ReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Reply
         fields = ['user', 'comment', 'content', 'created_at']
+        
+class FollowingSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only = True)
+    class Meta:
+        model = Following
+        fields = '__all__'
+        
+
+
+

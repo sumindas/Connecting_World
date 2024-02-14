@@ -23,6 +23,10 @@ urlpatterns = [
     path('posts/<int:user_id>/',UserPostListAPIView.as_view(),name='posts'),
     path('updatepost/<int:post_id>/', PostUpdateAPIView.as_view(), name='postupdate'),
     path('likes/', LikeAPIView.as_view(), name='like'),
+    path('comment/',CommentCreateAPIView.as_view(),name='comment'),
+    path('posts/<int:post_id>/comments/', CommentListAPIView.as_view(), name='comment-list'),
+    path('posts/<int:post_id>/comments/create/<int:user_id>/', CommentListAPIView.as_view(), name='comment-create'),
+    path('users/search/',UserSearchAPIView.as_view(),name='user-search'),
 
 ]
 

@@ -46,13 +46,24 @@ export default function Profile() {
     }
   }, [token, navigate, userId]);
 
+  const removePostFromFeed = useCallback((deletedPostId) => {
+    setFeeds((currentFeeds) => currentFeeds.filter(post => post.id !== deletedPostId));
+  }, []);
+ 
+
+  const editPost = useCallback((updatedPost)=>{
+    setFeeds((currentFeeds) =>
+      currentFeeds.map((post) =>
+        post.id === updatedPost.id ? updatedPost : post
+      ))
+  },[])
   
 
   return (
     <>
       <UserProfile />
       <AddPost onNewPost={updateFeed}/>
-      <Feeds feeds = {feeds}/>
+      <Feeds feeds = {feeds} onRemovePost={removePostFromFeed} onEditPost={editPost}/>
     </>
   );
 }

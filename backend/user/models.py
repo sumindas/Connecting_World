@@ -36,7 +36,6 @@ class UserProfile(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     phone = PhoneNumberField(unique=False, blank=True)
-    followers = models.ManyToManyField(CustomUser, related_name='following', blank=True)
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     cover_photo = models.ImageField(upload_to='cover_photos/', blank=True, null=True)
 
@@ -108,3 +107,30 @@ class Reply(models.Model):
     def __str__(self):
         return f'{self.user.username} replied to {self.comment}'
 
+
+
+class Following(models.Model):
+    """
+    Model representing the "following" relationship between two users.
+    """
+    follower = models.ForeignKey(
+        CustomUser,
+        related_name='following',
+        on_delete=models.CASCADE,
+        verbose_name='Follower'
+    )
+    followed = models.ForeignKey(
+        CustomUser,
+        related_name='followers',
+        on_delete=models.CASCADE,
+        verbose_name='Followed'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'followed',)
+        verbose_name = 'Following'
+        verbose_name_plural = 'Followings'
+
+    def __str__(self):
+        return f'{self.follower.username} is following {self.followed.username}'

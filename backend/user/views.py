@@ -10,8 +10,6 @@ from rest_framework.permissions import AllowAny
 from .email import send_otp_email
 import jwt, datetime
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from urllib.parse import urlencode
-from rest_framework import serializers
 from rest_framework.views import APIView
 from django.conf import settings
 from django.shortcuts import redirect
@@ -27,7 +25,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.parsers import JSONParser
 from django.core.exceptions import ValidationError
-from django.db.models import Prefetch
+from django.db.models import Prefetch,Q
 from django.shortcuts import get_object_or_404
 
 
@@ -247,8 +245,11 @@ class GoogleLogin(SocialLoginView):
     
 
 class userView(APIView):
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
     def get(self, request):
         auth_header = request.headers.get('Authorization')
+        print("====",request.user)
 
         if not auth_header or 'Bearer ' not in auth_header:
             raise AuthenticationFailed("Not authorized")
@@ -403,7 +404,7 @@ class UserPostListAPIView(APIView):
         posts = Post.objects.filter(user=user,is_deleted=False).prefetch_related(
             Prefetch('postimage_set'),
             Prefetch('postvideo_set')
-        )
+        ).order_by('-created_at')
         print("Posts:",posts)
         serializer = PostSerializer(posts, many=True)
         print(serializer.data)
@@ -412,53 +413,7 @@ class UserPostListAPIView(APIView):
     
 
 
-# class LikeViewSet(viewsets.ModelViewSet):
-#     serializer_class = LikeSerializer
-    
-#     @action(detail=False, methods=['get'])
-#     def liked_by_current_user(self, request, *args, **kwargs):
-#         """
-#         Custom action to check if the current user has liked a post.
-#         """
-#         post_id = request.query_params.get('postId')
-#         user_id = request.query_params.get('userId')
-#         if post_id is not None and user_id is not None:
-#             post = get_object_or_404(Post,id=post_id)
-#             user = get_object_or_404(CustomUser,id=user_id)
-#             like = Like.objects.filter(user=user, post=post).first()
-#             return Response({
-#                 'count': Like.objects.filter(post=post).count(),
-#                 'likedByUser': bool(like),
-#             }, status=status.HTTP_200_OK)
-#         else:
-#             return Response({'detail': 'Missing parameters: postId and userId'}, status=status.HTTP_400_BAD_REQUEST)
 
-#     def list(self, request, *args, **kwargs):
-#         """
-#         Overridden to return only the count of likes for a specific post.
-#         """
-#         return self.liked_by_current_user(request, *args, **kwargs)
-#     def create(self, request, *args, **kwargs):
-#         """
-#         Override the create method to handle like creation.
-#         """
-#         print("creating Like")
-#         user_id = request.data.get('userId')
-#         print("userid:",user_id)
-#         try:
-#             user = CustomUser.objects.get(id=user_id)
-#         except CustomUser.DoesNotExist:
-#             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-#         post_id = request.data.get('postId')
-#         if post_id is not None:
-#             post = Post.objects.get(id=post_id) # Assuming you have a Post model
-#             like, created = Like.objects.get_or_create(user=user, post=post)
-#             if created:
-#                 return Response({'message': 'Like created.'}, status=status.HTTP_201_CREATED)
-#             else:
-#                 return Response({'message': 'Like already exists.'}, status=status.HTTP_200_OK)
-#         else:
-#             return Response({'detail': 'Missing parameter: postId'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LikeAPIView(APIView):
     serializer_class = LikeSerializer
@@ -475,13 +430,24 @@ class LikeAPIView(APIView):
         """
         post_id = request.query_params.get('postId')
         user_id = request.query_params.get('userId')
-        if post_id is not None and user_id is not None:
-            post = get_object_or_404(Post, id=post_id)
-            user = get_object_or_404(CustomUser, id=user_id)
-            like = Like.objects.filter(user=user, post=post).first()
+        print("user",user_id,"---","Post",post_id)
+        try:  # Attempt to get objects as defensively as possible
+            if post_id is not None:
+                post = get_object_or_404(Post, id=post_id)
+            if user_id is not None:
+                user = get_object_or_404(CustomUser, id=user_id)
+        except Post.DoesNotExist or CustomUser.DoesNotExist:
+            return Response({"error": "User or Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        queryset = Like.objects.filter()
+        likedByUser = queryset.exists() 
+        if post_id:
+            queryset = queryset.filter(post=post) 
+        if user_id:
+            queryset = queryset.filter(user=user)
             return Response({
                 'count': Like.objects.filter(post=post).count(),
-                'likedByUser': bool(like),
+                'likedByUser': likedByUser,
             }, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Missing parameters: postId and userId'}, status=status.HTTP_400_BAD_REQUEST)
@@ -529,11 +495,15 @@ class PostUpdateAPIView(APIView):
 
         if serializer.is_valid():
             try:
-                images_data = request.FILES.getlist('images')
-                videos_data = request.FILES.getlist('videos')
-
-                # Process files
-                self.process_files(post, images_data, videos_data)
+                images_data = request.FILES.getlist('images[0]')
+                videos_data = request.FILES.getlist('videos[0]')
+                if images_data:
+                    for image in images_data:
+                        PostImage.objects.create(post=post, images_url=image)
+                if videos_data:
+                    for video in videos_data:
+                        PostVideo.objects.create(post=post, video_url=video)
+                print("Received Files:",request.FILES)
 
                 # Save the updated content
                 serializer.save()
@@ -553,3 +523,95 @@ class PostUpdateAPIView(APIView):
         post.is_deleted = True
         post.save()
         return Response({"message": "Post deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+
+
+class CommentCreateAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        post_id = self.request.query_params.get('postId')
+        user_id = self.request.query_params.get('userId')
+
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        comment_data = {'user': user.id, 'post': post.id, **request.data}
+        serializer = CommentSerializer(data=comment_data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentListAPIView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        post_id = self.kwargs['post_id']
+        return Comment.objects.filter(post=post_id)
+    
+    def perform_create(self, serializer):
+        user_id = self.kwargs['user_id']
+        print("user:",user_id)
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        post_id = self.kwargs['post_id']
+        post = get_object_or_404(Post, id=post_id)  
+        serializer.save(post=post, user=user)
+    
+
+class FollowingViewSet(viewsets.ModelViewSet):
+    queryset = Following.objects.all()
+    serializer_class = FollowingSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self,user_id):
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error':"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
+        return self.queryset.filter(Q(follower=user) | Q(followed=user))
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            followed_user_id = request.data.get('followed')
+            followed_user = CustomUser.objects.get(id=followed_user_id)
+
+            # Prevent self-following
+            if request.user == followed_user:
+                return Response({"error": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+            Following.objects.create(follower=request.user, followed=followed_user)
+            return Response({"message": "You are now following this user."}, status=status.HTTP_201_CREATED)
+
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User to follow not found."}, status=status.HTTP_404_NOT_FOUND)
+        except KeyError:
+            return Response({"error": "'followed' field is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class UserSearchAPIView(generics.GenericAPIView):
+    serializer_class = CustomUserSerializer
+    
+    def get(self,request,*args,**kwargs):
+        queryset = CustomUser.objects.all()
+        username = request.query_params.get('username','')
+        
+        if username:
+            queryset = queryset.filter(Q(username__iconatins=username))
+            
+        serializer = self.get_serializer(queryset,many=True)
+        
+        return Response(serializer.data)

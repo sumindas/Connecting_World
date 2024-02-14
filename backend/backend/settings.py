@@ -215,6 +215,7 @@ EMAIL_HOST_PASSWORD = 'tmdw ctte rjef ruhe'
 
 AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
 ]
 
 SOCIAL_AUTH_URL_NAMESPACE = 'social:auth'

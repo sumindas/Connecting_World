@@ -13,10 +13,11 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { Dialog, Transition } from "@headlessui/react";
 import { Link } from "react-router-dom";
-import "./feeds.css";
+import './feeds.css'
 import { updatePost } from "../../Redux/Slice/postSlice";
+import Comments from "../Comments/Comments";
 
-export default function Feed({ post }) {
+export default function Feed({ post,onRemovePost,onEditPost }) {
   const [openComment, setOpenComment] = useState(false);
   const CurrentUserData = useSelector((state) => state.auth.user);
   const [liked, setLiked] = useState(false);
@@ -29,6 +30,8 @@ export default function Feed({ post }) {
   const [editedVideos, setEditedVideos] = useState(post.videos || []);
   const dispatch = useDispatch();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  console.log("PostId:",post)
+  const [commentTotal,setCommentTotal] = useState(0)
 
   useEffect(() => {
     const fetchLikeInfo = async () => {
@@ -36,7 +39,7 @@ export default function Feed({ post }) {
         const response = await axios.get(`${BASE_URL}/likes/`, {
           params: {
             postId: post.id || "",
-            userId: userId || "",
+            userId: post.user.id  || " ",
           },
           headers: {
             "Content-Type": "application/json",
@@ -50,10 +53,24 @@ export default function Feed({ post }) {
       }
     };
 
-    if (post) {
+    if (post.id && userId) {
       fetchLikeInfo();
     }
   }, [post, userId]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/posts/${post.id}/comments/`);
+        setCommentTotal(response.data.length);
+        console.log("Total Comments",commentTotal)
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      }
+    };
+
+    fetchComments();
+  }, [post.id,commentTotal]);
 
   const handleLikeClick = async () => {
     setLiked(!liked);
@@ -62,7 +79,7 @@ export default function Feed({ post }) {
         `${BASE_URL}/likes/`,
         {
           postId: post.id,
-          userId: userId,
+          userId: post.user.id,
         },
         {
           headers: {
@@ -96,19 +113,20 @@ export default function Feed({ post }) {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    console.log("-------------")
 
     const formData = new FormData();
-    formData.append("user",userId)
-    formData.append("id",post.id)
+    formData.append("user", userId);
+    formData.append("id", post.id);
     formData.append("content", editedContent);
 
-    editedImages.forEach((image, index) => {
-      formData.append(`images[${index}]`, image);
-    });
-
-    editedVideos.forEach((video, index) => {
-      formData.append(`videos[${index}]`, video);
-    });
+    Array.from(editedImages).forEach((image, index) => {
+        formData.append(`images[${index}]`, image);
+      });
+    
+      Array.from(editedVideos).forEach((video, index) => {
+        formData.append(`videos[${index}]`, video);
+      });
 
     try {
       const response = await axios.put(
@@ -123,6 +141,7 @@ export default function Feed({ post }) {
 
       console.log(response.data);
       dispatch(updatePost(post.id, userId, response.data));
+      onEditPost(response.data);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating post:", error);
@@ -130,34 +149,29 @@ export default function Feed({ post }) {
   };
 
   const handleDeleteClick = () => {
-    // Open the delete confirmation modal
     setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     try {
-      // Add the API call to delete the post
-      const response = await axios.delete(`${BASE_URL}/deletepost/${post.id}/`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Handle successful deletion
+      const response = await axios.delete(
+        `${BASE_URL}/updatepost/${post.id}/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       console.log(response.data);
-      // Assuming you have a deletePost action in your postSlice
-    //   dispatch(deletePost(post.id, userId));
-
-      // Close the delete confirmation modal
+      onRemovePost(post.id);
+      //   dispatch(deletePost(post.id, userId));
       setIsDeleteModalOpen(false);
     } catch (error) {
       console.error("Error deleting post:", error);
-      // Handle error if needed
     }
   };
 
   const handleCancelDelete = () => {
-    // Close the delete confirmation modal
     setIsDeleteModalOpen(false);
   };
 
@@ -187,84 +201,77 @@ export default function Feed({ post }) {
           </Link>
           <div>
             <span>
-              <FontAwesomeIcon 
-              icon={faTrash}
-              className="cursor-pointer"
-              onClick={handleDeleteClick}
-              />
-            </span>
-            <span style={{ marginLeft: "10px" }}>
               <FontAwesomeIcon
-                icon={faPencilAlt}
+                icon={faTrash}
                 className="cursor-pointer"
-                onClick={handleEditClick}
+                onClick={handleDeleteClick}
               />
             </span>
           </div>
         </div>
         <div>
-        <Transition show={isDeleteModalOpen} as={React.Fragment}>
-          <Dialog
-            as="div"
-            className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center"
-            onClose={handleCancelDelete}
-          >
-            <div className="min-h-screen px-4 text-center">
-              <Transition.Child
-                as={React.Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <div
-                  className="fixed inset-0 transition-opacity"
-                  aria-hidden="true"
+          <Transition show={isDeleteModalOpen} as={React.Fragment}>
+            <Dialog
+              as="div"
+              className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center"
+              onClose={handleCancelDelete}
+            >
+              <div className="min-h-screen px-4 text-center">
+                <Transition.Child
+                  as={React.Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0"
+                  enterTo="opacity-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
                 >
-                  <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-                </div>
-              </Transition.Child>
-
-              <Transition.Child
-                as={React.Fragment}
-                enter="transform transition ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="transform transition ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
+                  <div
+                    className="fixed inset-0 transition-opacity"
+                    aria-hidden="true"
                   >
-                    Confirm Deletion
-                  </Dialog.Title>
-                  <div className="mt-2">
-                    <p>Are you sure you want to delete this post?</p>
-                    <div className="mt-4">
-                      <button
-                        onClick={handleConfirmDelete}
-                        className="mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        Confirm Delete
-                      </button>
-                      <button
-                        onClick={handleCancelDelete}
-                        className="mt-4 ml-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                      >
-                        Cancel
-                      </button>
+                    <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+                  </div>
+                </Transition.Child>
+
+                <Transition.Child
+                  as={React.Fragment}
+                  enter="transform transition ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="transform transition ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Confirm Deletion
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <p>Are you sure you want to delete this post?</p>
+                      <div className="mt-4">
+                        <button
+                          onClick={handleConfirmDelete}
+                          className="mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Confirm Delete
+                        </button>
+                        <button
+                          onClick={handleCancelDelete}
+                          className="mt-4 ml-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Transition.Child>
-            </div>
-          </Dialog>
-        </Transition>
+                </Transition.Child>
+              </div>
+            </Dialog>
+          </Transition>
         </div>
 
         <div className="content">{post.content}</div>
@@ -305,22 +312,24 @@ export default function Feed({ post }) {
           </div>
           <div className="action-item" onClick={CommentHandler}>
             <span>
-              <FontAwesomeIcon icon={faComment} />4 Comments
+              <FontAwesomeIcon icon={faComment}  />{commentTotal} Comments
             </span>
           </div>
-          <div className="action-item">
+          {/* <div className="action-item">
             <span>
               <FontAwesomeIcon icon={faShare} />1 Share
             </span>
-          </div>
+          </div> */}
           <div className="action-item" onClick={handleEditClick}>
             <span>
               <FontAwesomeIcon icon={faPencilAlt} />
               Edit
             </span>
           </div>
+          
         </div>
-
+        {openComment && <Comments post = {post}/>}
+        
         {/* Edit Post Modal */}
         <Transition show={isEditing} as={React.Fragment}>
           <Dialog
@@ -473,6 +482,7 @@ export default function Feed({ post }) {
             </div>
           </Dialog>
         </Transition>
+        
       </div>
     </>
   );
