@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from user.models import CustomUser
 from .serializers import *
 from rest_framework.views import APIView
@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 import jwt,datetime
 from rest_framework import status
+from user.serializer import *
+from django.shortcuts import get_list_or_404
+from rest_framework import generics
 
 # Create your views here.
 class AdminLogin(APIView):
@@ -70,4 +73,26 @@ class AdminUsersList(APIView):
             
         user.save()
         serializer = AdminCustomSerializers(user)
+        return Response(serializer.data)
+    
+    
+
+class AdminPostsList(APIView):
+
+    def get(self, request):
+        # Retrieve all non-deleted posts ordered by created_at in descending order
+        posts = Post.objects.filter(is_deleted=False).order_by('-created_at')
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, post_id):
+        # Retrieve the post by its ID
+        post = get_object_or_404(Post, id=post_id)
+
+        # Update the post's is_deleted status
+        post.is_deleted = not post.is_deleted
+        post.save()
+
+        # Serialize and return the updated post
+        serializer = PostSerializer(post)
         return Response(serializer.data)

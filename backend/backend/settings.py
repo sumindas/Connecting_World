@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'user',
     'corsheaders',
+    'channels',
+    
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -210,7 +212,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'vrsumindas007@gmail.com'
-EMAIL_HOST_PASSWORD = 'tmdw ctte rjef ruhe'
+EMAIL_HOST_PASSWORD = 'itcy nios hbln jskz'
 
 
 AUTHENTICATION_BACKENDS = [

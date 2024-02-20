@@ -77,6 +77,7 @@ class Like(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.user.username} likes {self.post}'
@@ -135,3 +136,26 @@ class Following(models.Model):
 
     def __str__(self):
         return f'{self.follower.username} is following {self.followed.username}'
+    
+    
+class ChatRoom(models.Model):
+    """
+    Model representing a chat room or channel.
+    """
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.name
+
+class ChatMessage(models.Model):
+    """
+    Model representing a chat message.
+    """
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.user.username}: {self.message}'

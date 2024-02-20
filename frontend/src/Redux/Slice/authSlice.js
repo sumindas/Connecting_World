@@ -9,7 +9,7 @@ const authSlice = createSlice({
         error : null,
         email : "",
         login : false,
-        token : "",
+        token : null,
         admin_token : "",
         allUsers : [],
     },
@@ -32,14 +32,16 @@ const authSlice = createSlice({
         setLogin : (state,action) => {
           state.user = action.payload.user
           state.login = true
-          state.token = action.payload.jwt
+        },
+        setToken :(state,action) =>{
+          state.token = action.payload
         },
         userLogout: (state) => {
           state.user = null;
           state.isAuthenticated = false;
           state.error = null;
           state.login = false;
-          state.token = "";
+          state.token = null;
       },
       adminLogin:(state,action) => {
         state.admin_token = action.payload.jwt
@@ -64,6 +66,6 @@ const authSlice = createSlice({
 })
 
 
-export const {setUser,setError,clearError,setEmail,setLogin,userLogout,adminLogin,adminLogout,usersList,userUpdate} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,setLogin,setToken,userLogout,adminLogin,adminLogout,usersList,userUpdate} = authSlice.actions
 
 export default authSlice.reducer

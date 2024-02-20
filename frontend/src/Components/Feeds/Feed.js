@@ -316,11 +316,6 @@ export default function Feed({ post,onRemovePost,onEditPost }) {
               <FontAwesomeIcon icon={faComment}  />{commentTotal} Comments
             </span>
           </div>
-          {/* <div className="action-item">
-            <span>
-              <FontAwesomeIcon icon={faShare} />1 Share
-            </span>
-          </div> */}
           <div className="action-item" onClick={handleEditClick}>
             <span>
               <FontAwesomeIcon icon={faPencilAlt} />

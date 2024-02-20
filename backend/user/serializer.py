@@ -114,6 +114,7 @@ class ReplySerializer(serializers.ModelSerializer):
         
 class FollowingSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only = True)
+    posts = PostSerializer(source='followed.post_set', many=True, read_only=True)
     class Meta:
         model = Following
         fields = '__all__'

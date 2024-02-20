@@ -3,6 +3,7 @@ import './login.css'
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../Redux/Actions/authActions';
+import { setToken } from '../../Redux/Slice/authSlice';
 
 
 
@@ -13,19 +14,21 @@ function Login() {
   const [email, setEmail] = useState('');
   const error = useSelector((state) => state.auth.error)
   const [password, setPassword] = useState('');
-  // const state = useSelector((state)=>state)
   const token = useSelector((state)=>state.auth.token)
 
 
   useEffect(()=>{
+    const storedToken = localStorage.getItem('token')
+    console.log("storedToken:",storedToken)
+    if(storedToken){
+      dispatch(setToken(storedToken))
+    }
     if(token){
-      console.log("Token:",token)
-      console.log( 'Authorization:',token.jwt)
       navigate('/home/profile')
     } else{
       navigate('/')
     }
-  },[token,navigate])
+  },[token, navigate, dispatch])
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -56,7 +59,7 @@ function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+          {error && <p style={{ color: 'white' }}>{error}</p>}
           <button className='btn login-btn' type='submit'>Login</button>
         </form>
       </div>

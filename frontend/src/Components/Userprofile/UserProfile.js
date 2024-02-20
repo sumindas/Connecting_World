@@ -74,6 +74,7 @@ export default function UserProfile() {
   };
 
   const handleLogout = (e) => {
+    localStorage.removeItem('token');
     dispatch(userLogout());
     console.log("Success");
     navigate("/");
@@ -163,11 +164,18 @@ export default function UserProfile() {
         )}
 
         <div className="user-name">
+
+        {currentUser && currentUser.user && currentUser.user.full_name ? (
+            <h5>{currentUser.user.full_name}</h5>
+          ) : (
+            <input type="text" placeholder="Update Fullname" />
+          )}
           {currentUser && currentUser.user && currentUser.user.username ? (
             <h5>{currentUser.user.username}</h5>
           ) : (
             <input type="text" placeholder="Update username" />
           )}
+         
           <div className="user-location">
             {currentUser &&
             currentUser.user_profile &&

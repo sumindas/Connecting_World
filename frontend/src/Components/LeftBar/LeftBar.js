@@ -15,6 +15,7 @@ import message from "../../assets/icon/7.png";
 import FriendReq from "../Friendreq/FriendReq";
 import { useSelector } from "react-redux";
 import { BASE_URL } from "../../Api/api";
+import Message from "../Message/Message";
 
 export default function LeftBar() {
   const CurrentUser = useSelector((state) => state.auth.user);
@@ -23,7 +24,7 @@ export default function LeftBar() {
       <div className="left-container">
         <div className="menu">
           <Link to="/profile/id">
-            <div className="user">
+            <div style={{marginBottom:"10px",marginLeft:"10px"}} className="user">
               {CurrentUser && CurrentUser.user_profile ? (
                 <img
                   src={`${BASE_URL}${CurrentUser.user_profile.profile_image}`}
@@ -31,13 +32,14 @@ export default function LeftBar() {
                   className="profile-image" // Add a class for styling if needed
                 />
               ) : null}
-              <h4 style={{ marginLeft: "10px" }}>
+              <h4 style={{ marginLeft: "10px"}}>
                 {CurrentUser?.user?.username}
               </h4>
               {/* Add other user details here as needed */}
             </div>
           </Link>
-          <Link to="/">
+          <Message />
+          {/* <Link to="/">
             <div className="item">
               <img src={Firend} alt="" />
               <h4>Friends</h4>
@@ -89,7 +91,7 @@ export default function LeftBar() {
               <img src={message} alt="" />
               <h4>Messages</h4>
             </div>
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div>

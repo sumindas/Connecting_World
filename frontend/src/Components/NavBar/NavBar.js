@@ -30,18 +30,20 @@ export default function NavBar() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionListRef = useRef(null);
-  const CurrentUserName = CurrentUser?.user?.username
-
+  const CurrentUserName = CurrentUser?.user?.username;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (suggestionListRef.current && !suggestionListRef.current.contains(event.target)) {
+      if (
+        suggestionListRef.current &&
+        !suggestionListRef.current.contains(event.target)
+      ) {
         setShowSuggestions(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside); // Cleanup
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside); // Cleanup
   }, []);
 
   const handleSearch = async () => {
@@ -74,34 +76,44 @@ export default function NavBar() {
             <FontAwesomeIcon icon={faUser} />
           </Link>
           <div className="Nav-Searchbar">
-            <FontAwesomeIcon onClick={handleSearch} icon={faSearch} />
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Search for users..."
             />
-           
+            <FontAwesomeIcon onClick={handleSearch} icon={faSearch} />
           </div>
-          <div className="Nav-Searchbar">
-          {showSuggestions && (
-              <ul ref={suggestionListRef} style={{ width: '250px' }} className="suggestion-list">
-                {suggestions.map((user) => (
-                  <li key={user.id}>
-                    <Link to={user.username === CurrentUserName ? '/home/profile' : `/home/user/${user.id}`}>
-                    <img
-                      src={`${BASE_URL}${user.userprofile.profile_image}`}
-                      alt={user.username}
-                      className="suggested-profile-image"
-                    />
-                    <span>{user.username}</span>
-                    </Link>
-                  </li>
-                ))}
+          
+            {showSuggestions && (
+              <div className="Nav-Searchbar">
+              <ul
+                ref={suggestionListRef}
+                style={{ width: "250px" }}
+                className="suggestion-list"
+              >
+                {suggestions.length > 0 ? (
+                  suggestions.map((user) => (
+                    <li key={user.id}>
+                      <Link
+                        to={
+                          user.username === CurrentUserName
+                            ? "/home/profile"
+                            : `/home/user/${user.id}`
+                        }
+                      >
+                        <span>{user.username}</span>
+                      </Link>
+                    </li>
+                  ))
+                ) : (
+                  <li className="no-suggestions">No users found</li>
+                )}
               </ul>
+              </div>
             )}
-        </div>
-        </div>
+          </div>
+        
 
         {/* ............Nav Area Right............... */}
 
@@ -113,9 +125,7 @@ export default function NavBar() {
             <FontAwesomeIcon icon={faBell} />
           </Link>
           <DarkMode />
-          <Link to="/">
-            <FontAwesomeIcon icon={faBars} />
-          </Link>
+
           <div className="user">
             {CurrentUser && CurrentUser.user_profile ? (
               <img

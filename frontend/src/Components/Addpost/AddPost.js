@@ -4,8 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faImage, faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-import data from '@emoji-mart/data'
-import { Picker } from "emoji-mart";
 import axios from "axios";
 import { BASE_URL } from "../../Api/api";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,7 +13,6 @@ export default function AddPost({ onNewPost }) {
   const [content, setContent] = useState("");
   const [videos,setVideos] = useState([])
   const [images, setImages] = useState([]);
-  const [showEmojiPicker,setShowEmojiPicker] = useState(false)
   const dispatch = useDispatch();
   const CurrentUserData = useSelector((state) => state.auth.user);
   const userId = CurrentUserData?.user?.id
@@ -52,11 +49,10 @@ export default function AddPost({ onNewPost }) {
     }
   };
 
-  const handleEmojiSelect = (emoji) => {
-    setContent(content + emoji.native);
-  };
+
 
   return (
+    <>
     <form className="postForm" onSubmit={handleSubmit}>
       <div className="user form-top">
         {CurrentUserData &&
@@ -67,27 +63,12 @@ export default function AddPost({ onNewPost }) {
             alt=""
           />
         ) : null}
-
         <input
           type="text"
           placeholder="What's on your mind"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          onFocus={() => setShowEmojiPicker(false)}
         />
-        <span
-        role="img"
-        aria-label="emoji-picker"
-        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-        style={{ cursor: 'pointer' }}
-      >
-        😀
-      </span>
-      {showEmojiPicker && (
-        <div style={{ position: 'absolute', zIndex: '1' }}>
-          <Picker onSelect={handleEmojiSelect} />
-        </div>
-      )}
         <button type="submit" className="btn btn-primary">
           Post
         </button>
@@ -100,7 +81,6 @@ export default function AddPost({ onNewPost }) {
             multiple
             onChange={(e) => setImages(Array.from(e.target.files))}
           />
-
           <span>
             <FontAwesomeIcon icon={faImage} />
             Photos
@@ -119,8 +99,9 @@ export default function AddPost({ onNewPost }) {
             Videos
           </span>
         </label>
-        
       </div>
     </form>
+    </>
+    
   );
 }

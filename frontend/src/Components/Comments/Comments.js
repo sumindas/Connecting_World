@@ -7,7 +7,7 @@ function CommentsList({ post }) {
   const [comments, setComments] = useState([]);
   const currentUser = useSelector((state) => state.auth.user);
   const postId = post.id
-  const userId = post.user.id
+  const userId = currentUser?.user?.id
  
 
   useEffect(() => {
@@ -86,6 +86,7 @@ function CommentsList({ post }) {
     ))
   )}
 </div>
+
   );
 }
 

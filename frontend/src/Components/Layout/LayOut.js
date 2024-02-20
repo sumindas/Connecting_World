@@ -17,6 +17,7 @@ import AdminLogin from '../Admin/Pages/login'
 import AdminHome from '../Admin/Pages/AdminHome'
 import Users from '../Admin/Pages/Users'
 import OtherUser from '../Userprofile/otherUserProfile'
+import Posts from '../Admin/Pages/Posts'
 
 
 export default function LayOut() {
@@ -66,6 +67,10 @@ export default function LayOut() {
     {
       path : '/userslist',
       element : <Users />
+    },
+    {
+      path: '/postlist',
+      element : <Posts />
     },
     {
       path: '/home', 

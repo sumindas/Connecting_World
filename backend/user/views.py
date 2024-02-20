@@ -27,6 +27,7 @@ from rest_framework.parsers import JSONParser
 from django.core.exceptions import ValidationError
 from django.db.models import Prefetch,Q
 from django.shortcuts import get_object_or_404
+from django.db.models import Count
 
 
 
@@ -88,12 +89,12 @@ class Verify_Otp(APIView):
                 return Response({'error':'Email Not Found Please Register Again'},status=status.HTTP_400_BAD_REQUEST)
             if not otp:
                 return Response({'error':'Please enter otp'},status=status.HTTP_400_BAD_REQUEST)
-            print("Otp:",otp,"---------","email:",email)
             serializer = VerifyUserSerializer(data=data)
             print(serializer)
             if serializer.is_valid():
 
                 user = CustomUser.objects.get(email = email)
+                print("Otp:",user.otp)
                 if not user:
                     return Response({'error':'User Not Found '},status=status.HTTP_400_BAD_REQUEST)
 
@@ -413,10 +414,8 @@ class UserPostListAPIView(APIView):
         except CustomUser.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        posts = Post.objects.filter(user=user,is_deleted=False).prefetch_related(
-            Prefetch('postimage_set'),
-            Prefetch('postvideo_set')
-        ).order_by('-created_at')
+        posts = Post.objects.filter(user=user, is_deleted=False).prefetch_related('postimage_set', 'postvideo_set', 'like_set', 'comment_set')\
+            .order_by('-created_at')
         print("Posts:",posts)
         serializer = PostSerializer(posts, many=True)
         print(serializer.data)
@@ -429,6 +428,7 @@ class UserPostListAPIView(APIView):
 
 class LikeAPIView(APIView):
     serializer_class = LikeSerializer
+    
 
     def get(self, request, *args, **kwargs):
         """
@@ -584,33 +584,7 @@ class CommentListAPIView(generics.ListCreateAPIView):
         serializer.save(post=post, user=user)
     
 
-# class FollowingViewSet(viewsets.ModelViewSet):
-#     queryset = Following.objects.all()
-#     serializer_class = FollowingSerializer
-    
-#     def get_queryset(self,user_id):
-#         try:
-#             user = CustomUser.objects.get(id=user_id)
-#         except CustomUser.DoesNotExist:
-#             return Response({'error':"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
-#         return self.queryset.filter(Q(follower=user) | Q(followed=user))
-    
-#     def create(self, request, *args, **kwargs):
-#         try:
-#             followed_user_id = request.data.get('followed')
-#             followed_user = CustomUser.objects.get(id=followed_user_id)
 
-#             # Prevent self-following
-#             if request.user == followed_user:
-#                 return Response({"error": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
-
-#             Following.objects.create(follower=request.user, followed=followed_user)
-#             return Response({"message": "You are now following this user."}, status=status.HTTP_201_CREATED)
-
-#         except CustomUser.DoesNotExist:
-#             return Response({"error": "User to follow not found."}, status=status.HTTP_404_NOT_FOUND)
-#         except KeyError:
-#             return Response({"error": "'followed' field is required."}, status=status.HTTP_400_BAD_REQUEST)
 class FollowingAPIView(APIView):
 
     def get(self, request, user_id):
@@ -646,6 +620,7 @@ class FollowingAPIView(APIView):
         
             following_relationship.is_active = not following_relationship.is_active
             following_relationship.save()
+            print("Relation:",following_relationship.is_active)
 
         
             message = "You are now following this user." if following_relationship.is_active else "You have unfollowed this user."
@@ -657,7 +632,19 @@ class FollowingAPIView(APIView):
         except KeyError:
             return Response({"error": "'followed' field is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+class IsFollowingAPIView(APIView):
+    def get(self, request, follower_id, followed_id):
+        try:
+            follower = CustomUser.objects.get(id=follower_id)
+            followed = CustomUser.objects.get(id=followed_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error': "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the follower is following the followed user
+        is_following = Following.objects.filter(follower=follower, followed=followed, is_active=True).exists()
+
+        return Response({'isFollowing': is_following}, status=status.HTTP_200_OK)
+    
 class UserSearchAPIView(generics.GenericAPIView):
     serializer_class = CustomUserSerializer
     
@@ -672,3 +659,34 @@ class UserSearchAPIView(generics.GenericAPIView):
         serializer = self.get_serializer(queryset,many=True)
         
         return Response(serializer.data)
+    
+class FollowedUsersPostsView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        user = CustomUser.objects.get(id=user_id)
+        followed_users = user.following.values_list('followed', flat=True)
+        queryset = Post.objects.exclude(user=user).filter(user__in=followed_users,is_deleted=False).order_by('-created_at')
+        return queryset
+
+
+class FollowedUsersView(generics.ListAPIView):
+    serializer_class = CustomUserSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        user = CustomUser.objects.get(id=user_id)
+        followed_users = user.following.values_list('followed', flat=True)
+        queryset = CustomUser.objects.filter(id__in=followed_users)
+        return queryset
+
+class RandomUserSuggestionsView(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
+        users = CustomUser.objects.filter(is_active=True, is_superuser=False).exclude(id=user_id).exclude(
+            followers__follower__id=user_id
+        ).order_by('?')[:6]
+        
+        user_serializer = CustomUserSerializer(users, many=True)
+        return Response(user_serializer.data)

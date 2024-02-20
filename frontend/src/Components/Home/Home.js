@@ -14,22 +14,34 @@
 
 import React, { useState, useEffect } from 'react';
 import FeedItem from './FeedItem';
+import { useSelector } from 'react-redux';
+import { BASE_URL } from '../../Api/api';
+import axios from 'axios';
 
-const Feed = () => {
+const Home = () => {
   const [posts, setPosts] = useState([]);
-  
+
+  const CurrentuserData = useSelector((state)=>state.auth.user)
+  const userId = CurrentuserData?.user?.id
+   
   useEffect(() => {
     const fetchPosts = async () => {
-      // ... logic to fetch posts from the backend based on followed users.
-      // ... store fetched posts in the 'posts' state.
+      try {
+        const response = await axios.get(`${BASE_URL}/followed-posts/${userId}/`);
+        console.log(response.data)
+        setPosts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch posts: ", error);
+      }
     };
-
-    fetchPosts();  
-  }, []);
+  
+    fetchPosts();   
+  }, [userId]);
+  
 
   return (
     <div className="container mx-auto px-4"> {/* Tailwind container */}
-      {posts.length === 0 ? (
+      {posts.length ===  0 ? (
         <p className="text-center text-gray-500">No posts to display yet.</p>
       ) : (
         <div>
@@ -42,4 +54,4 @@ const Feed = () => {
   );
 };
 
-export default Feed;
+export default Home;

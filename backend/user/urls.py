@@ -29,6 +29,10 @@ urlpatterns = [
     path('posts/<int:post_id>/comments/create/<int:user_id>/', CommentListAPIView.as_view(), name='comment-create'),
     path('users/search/',UserSearchAPIView.as_view(),name='user-search'),
     path('following/<int:user_id>/',FollowingAPIView.as_view(),name='following'),
+    path('following/check/<int:follower_id>/<int:followed_id>/', IsFollowingAPIView.as_view(), name='is_following'),
+    path('followed-posts/<int:user_id>/', FollowedUsersPostsView.as_view(), name='followed-posts'),
+    path('followed_users/<int:user_id>/',FollowedUsersView.as_view(),name='followed_users'),
+    path('user_suggestions/<int:user_id>/',RandomUserSuggestionsView.as_view(),name='user_suggestions'),
 ]
 
 if settings.DEBUG:
