@@ -28,6 +28,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+class OnlineUser(models.Model):
+	user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.user.username
 
 
 class UserProfile(models.Model):
@@ -138,24 +143,3 @@ class Following(models.Model):
         return f'{self.follower.username} is following {self.followed.username}'
     
     
-class ChatRoom(models.Model):
-    """
-    Model representing a chat room or channel.
-    """
-    name = models.CharField(max_length=100, unique=True)
-    created_at = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return self.name
-
-class ChatMessage(models.Model):
-    """
-    Model representing a chat message.
-    """
-    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    message = models.TextField()
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f'{self.user.username}: {self.message}'

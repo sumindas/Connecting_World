@@ -18,6 +18,8 @@ import AdminHome from '../Admin/Pages/AdminHome'
 import Users from '../Admin/Pages/Users'
 import OtherUser from '../Userprofile/otherUserProfile'
 import Posts from '../Admin/Pages/Posts'
+import ChatRoom from '../Chatbox/ChatRoom'
+
 
 
 export default function LayOut() {
@@ -92,6 +94,11 @@ export default function LayOut() {
           path: 'user/:id', 
           element: <OtherUser />
         },
+        {
+          path : 'chats/:id',
+          element : <ChatRoom />
+        }
+      
       ]
     }
   ])

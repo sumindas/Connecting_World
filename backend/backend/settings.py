@@ -28,12 +28,13 @@ SECRET_KEY = 'django-insecure-agmcdjj@_a+tg+!465tmo)@=q#*u2+t(ik+6y_up^+&@cob%8g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     'user',
     'corsheaders',
     'channels',
+    'chat',
     
 ]
 
@@ -90,6 +92,14 @@ TEMPLATES = [
 AUTH_USER_MODEL = 'user.CustomUser'
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default":{
+        "BACKEND":"channels.layers.InMemoryChannelLayer",
+        "CONFIG":{"hosts": [('127.0.0.1',6379)]}
+        }
+}
 
 
 # Database
@@ -205,6 +215,14 @@ CORS_ORIGIN_WHITELIST = [
 ]
 
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -8,7 +8,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('user.urls')),
-    path('socialadmin/',include('socialadmin.urls'))
+    path('socialadmin/',include('socialadmin.urls')),
+    path('chat/',include('chat.urls')),
     
 ]
 if settings.DEBUG:
