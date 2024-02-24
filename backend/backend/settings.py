@@ -44,11 +44,9 @@ INSTALLED_APPS = [
     'django.core.mail',
     'django.contrib.sites',
     'rest_framework.authtoken',
+    'rest_framework',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'rest_framework',
     'user',
     'corsheaders',
     'channels',
@@ -85,7 +83,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'allauth.socialaccount.context_processors.socialaccount',
             ],
         },
     },
@@ -248,13 +245,14 @@ EMAIL_HOST_PASSWORD = 'itcy nios hbln jskz'
 
 
 AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
     'rest_framework_simplejwt.authentication.JWTAuthentication',
 ]
 
-SOCIAL_AUTH_URL_NAMESPACE = 'social:auth'
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+# SOCIAL_AUTH_URL_NAMESPACE = 'social:auth'
+# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com'
+# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 APPEND_SLASH=False
 

@@ -18,8 +18,6 @@ from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from dj_rest_auth.registration.views import SocialLoginView
 from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -217,34 +215,6 @@ class LoginView(APIView):
             
             
             
-class GoogleLogin(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-
-    def perform_login(self, serializer, user, *args, **kwargs):
-        existing_user = CustomUser.objects.filter(email=user.email).first()
-       
-        if not existing_user:
-           
-            user_data = {
-                'email': user.email,
-                'username': user.username,
-                'full_name': user.full_name,
-            }
-
-            serializer = CustomUserSerializer(data=user_data)
-
-            try:
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                serializer.instance.is_verified = True
-                serializer.instance.save()
-            except Exception as e:
-                
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        super().perform_login(serializer, user, *args, **kwargs)
-        user.is_verified = True
-        user.save()
 
     
 

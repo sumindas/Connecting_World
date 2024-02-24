@@ -15,7 +15,7 @@ class AdminLogin(APIView):
     def post(self,request):
         email = request.data['email']
         password = request.data['password']
-        print(email,password)
+        print(email,"",password)
         
         if not(email and password):
             raise AuthenticationFailed({
@@ -80,19 +80,15 @@ class AdminUsersList(APIView):
 class AdminPostsList(APIView):
 
     def get(self, request):
-        # Retrieve all non-deleted posts ordered by created_at in descending order
         posts = Post.objects.filter(is_deleted=False).order_by('-created_at')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
     def post(self, request, post_id):
-        # Retrieve the post by its ID
         post = get_object_or_404(Post, id=post_id)
 
-        # Update the post's is_deleted status
         post.is_deleted = not post.is_deleted
         post.save()
 
-        # Serialize and return the updated post
         serializer = PostSerializer(post)
         return Response(serializer.data)

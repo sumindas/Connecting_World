@@ -17,7 +17,6 @@ urlpatterns = [
     path('login/',LoginView.as_view(),name='login'),
     path('userdata/',userView.as_view(),name='userdata'),
     path('logout/',UserLogout.as_view(),name='logout'),
-    path('google/', GoogleLogin.as_view(),name='google_login'),
     path('userprofile/<int:user_id>/', UserProfileDetailView.as_view(), name='userprofile-detail'),
     path('userupdate/<int:user_id>/',UserProfileUpdate.as_view(),name='userupdate'),
     path('addpost/<int:id>/',PostCreateAPIView.as_view(),name='postadd'),
