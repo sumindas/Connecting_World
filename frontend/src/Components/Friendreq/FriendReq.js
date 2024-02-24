@@ -3,13 +3,11 @@ import React, { useState, useEffect } from "react";
 import "./friendreq.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { useSelector } from "react-redux";
 import { BASE_URL } from "../../Api/api";
 
 export default function FriendReq() {
   const [friendSuggestions, setFriendSuggestions] = useState([]);
-  const CurrentUser = useSelector((state) => state.auth.user);
-  const userId = CurrentUser?.user?.id;
+  const userId = localStorage.getItem('userId')
 
   useEffect(() => {
     const fetchFriendSuggestions = async () => {
@@ -18,7 +16,11 @@ export default function FriendReq() {
           `${BASE_URL}/user_suggestions/${userId}/`
         );
         console.log("data:", response.data);
-        setFriendSuggestions(response.data);
+        const suggestionsWithStatus = response.data.map((friend) => ({
+          ...friend,
+          following: false,  
+        }));
+        setFriendSuggestions(suggestionsWithStatus);
       } catch (error) {
         console.error("Error fetching friend suggestions:", error);
       }
@@ -26,6 +28,33 @@ export default function FriendReq() {
 
     fetchFriendSuggestions();
   }, [userId]);
+
+  const handleFollow = async (friendId) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/following/${userId}/`,
+        { followed: friendId }
+      );
+      console.log("Server Response:", response.data);
+
+      // Infer the following status based on the action
+      const followingStatus = !friendSuggestions.find(friend => friend.id === friendId).following;
+
+      setFriendSuggestions((currentFriendSuggestions) => {
+        console.log("Before Update:", currentFriendSuggestions);
+        const updatedSuggestions = currentFriendSuggestions.map((friend) =>
+          friend.id === friendId ? { ...friend, following: followingStatus } : friend
+        );
+        console.log("After Update:", updatedSuggestions);
+        return updatedSuggestions;
+      });
+      
+      alert(response.data.message);
+    } catch (error) {
+      console.error("Error following user:", error);
+      alert("Failed to follow user. Please try again later.");
+    }
+  };
 
   return (
     <div className="Friend-Requests">
@@ -36,7 +65,7 @@ export default function FriendReq() {
       </h4>
       {friendSuggestions.map((friend) => (
         <div className="request" key={friend.id}>
-          <Link to={`/profile/${friend.id}`}>
+          <Link to={`/home/user/${friend.id}`}>
             <div className="info">
               <div className="user">
                 {friend && friend.userprofile && friend.userprofile.profile_image ? (
@@ -53,7 +82,12 @@ export default function FriendReq() {
             </div>
           </Link>
           <div className="action">
-            <button className="btn btn-primary">Follow</button>
+            <button
+              className="btn btn-primary"
+              onClick={() => handleFollow(friend.id)}
+            >
+              {friend.following ? "Unfollow" : "Follow"}
+            </button>
           </div>
         </div>
       ))}

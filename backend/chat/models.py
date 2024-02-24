@@ -21,5 +21,16 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        
+        
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications_received')
+    follower = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications_sent')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.content}"
 
 

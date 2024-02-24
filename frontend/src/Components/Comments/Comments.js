@@ -6,8 +6,9 @@ import { useSelector } from 'react-redux';
 function CommentsList({ post }) {
   const [comments, setComments] = useState([]);
   const currentUser = useSelector((state) => state.auth.user);
+  const token = localStorage.getItem('token')
   const postId = post.id
-  const userId = currentUser?.user?.id
+  const userId = localStorage.getItem('userId')
  
 
   useEffect(() => {
@@ -33,7 +34,7 @@ function CommentsList({ post }) {
           { content: commentText },
           {
             headers: {
-              Authorization: `Bearer ${currentUser.token}`,
+              Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
           }

@@ -38,7 +38,7 @@ export default function AddPost({ onNewPost }) {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log(response)
+      console.log("NewPost:",response.data)
         onNewPost(response.data)
         setContent("");
         setVideos([]);

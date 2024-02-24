@@ -22,7 +22,7 @@ export default function Feed({ post,onRemovePost,onEditPost }) {
   const CurrentUserData = useSelector((state) => state.auth.user);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [likedByUser, setLikedByUser] = useState(false);
+  const [likedByUser, setLikedByUser] = useState(post.likedByUser);
   const userId = post?.user;
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);

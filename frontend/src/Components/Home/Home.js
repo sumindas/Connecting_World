@@ -1,28 +1,13 @@
-// import React from 'react'
-
-
-// export default function Home() {
-
-//   return (
-//     <>
-//       {/* <Stories /> */}
-//       {/* <AddPost />
-//       <Feeds /> */}
-//     </>
-//   )
-// }
 
 import React, { useState, useEffect } from 'react';
 import FeedItem from './FeedItem';
-import { useSelector } from 'react-redux';
 import { BASE_URL } from '../../Api/api';
 import axios from 'axios';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
 
-  const CurrentuserData = useSelector((state)=>state.auth.user)
-  const userId = CurrentuserData?.user?.id
+  const userId = localStorage.getItem('userId')
    
   useEffect(() => {
     const fetchPosts = async () => {
@@ -40,7 +25,7 @@ const Home = () => {
   
 
   return (
-    <div className="container mx-auto px-4"> {/* Tailwind container */}
+    <div className="container mx-auto px-4"> 
       {posts.length ===  0 ? (
         <p className="text-center text-gray-500">No posts to display yet.</p>
       ) : (

@@ -31,6 +31,7 @@ export default function NavBar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionListRef = useRef(null);
   const CurrentUserName = CurrentUser?.user?.username;
+  const userId = CurrentUser?.user?.id
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -97,7 +98,7 @@ export default function NavBar() {
                     <li key={user.id}>
                       <Link
                         to={
-                          user.username === CurrentUserName
+                          user?.username === CurrentUserName
                             ? "/home/profile"
                             : `/home/user/${user.id}`
                         }
@@ -118,20 +119,17 @@ export default function NavBar() {
         {/* ............Nav Area Right............... */}
 
         <div className="nav-right">
-          <Link to="/home/chat/id">
-            <FontAwesomeIcon icon={faEnvelope} />
-          </Link>
-          <Link to="/">
+          
+          <Link to={`/home/notificatins/${userId}`}>
             <FontAwesomeIcon icon={faBell} />
           </Link>
           <DarkMode />
-
           <div className="user">
             {CurrentUser && CurrentUser.user_profile ? (
               <img
                 src={`${BASE_URL}${CurrentUser.user_profile.profile_image}`}
                 alt="Profile Image"
-                className="profile-image" // Add a class for styling if needed
+                className="profile-image" 
               />
             ) : null}
             <h4 style={{ marginLeft: "10px" }}>

@@ -28,6 +28,9 @@ from django.core.exceptions import ValidationError
 from django.db.models import Prefetch,Q
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from .tasks import send_mail_func
+from django.http import Http404
+
 
 
 
@@ -104,7 +107,7 @@ class Verify_Otp(APIView):
                 user.is_verified = True
                 user.otp = None
                 user.save()
-
+                send_mail_func.delay()
                 return Response({
                 'status' : 200,
                 'message' : 'Account Verified'
@@ -197,7 +200,7 @@ class LoginView(APIView):
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
             'iat': datetime.datetime.now(datetime.timezone.utc),
         }
-        token = jwt.encode(payload, 'secret', algorithm="HS256")
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
         response = Response()
 
         response.data = {
@@ -256,7 +259,7 @@ class userView(APIView):
             raise AuthenticationFailed("Not authorized")
         token = auth_header.split('Bearer ')[1]
         try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             print("Decoded Payload:", payload)
             user = CustomUser.objects.filter(id=payload['id']).first()
             user_serializer = CustomUserSerializer(user)
@@ -391,7 +394,7 @@ class PostCreateAPIView(APIView):
 
                 post_serialized = PostSerializer(post)
                 print("Received files:", request.FILES)
-                print(post_serialized)
+                print("post new",post_serialized)
                 return Response(post_serialized.data, status=status.HTTP_201_CREATED)
             except ValidationError as ve:
                 print("Validation Error:", ve)
@@ -443,26 +446,31 @@ class LikeAPIView(APIView):
         post_id = request.query_params.get('postId')
         user_id = request.query_params.get('userId')
         print("user",user_id,"---","Post",post_id)
-        try:  # Attempt to get objects as defensively as possible
-            if post_id is not None:
-                post = get_object_or_404(Post, id=post_id)
-            if user_id is not None:
-                user = get_object_or_404(CustomUser, id=user_id)
-        except Post.DoesNotExist or CustomUser.DoesNotExist:
-            return Response({"error": "User or Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        post = None
+        user = None
 
-        queryset = Like.objects.filter()
-        likedByUser = queryset.exists() 
-        if post_id:
-            queryset = queryset.filter(post=post) 
-        if user_id:
-            queryset = queryset.filter(user=user)
-            return Response({
-                'count': Like.objects.filter(post=post).count(),
-                'likedByUser': likedByUser,
-            }, status=status.HTTP_200_OK)
-        else:
+        if post_id is not None:
+            try:
+                post = get_object_or_404(Post, id=post_id)
+            except Http404:
+                return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if user_id is not None:
+            try:
+                user = get_object_or_404(CustomUser, id=user_id)
+            except Http404:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if post is None or user is None:
             return Response({'detail': 'Missing parameters: postId and userId'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Like.objects.filter(post=post, user=user)
+        likedByUser = queryset.exists()
+
+        return Response({
+            'count': Like.objects.filter(post=post).count(),
+            'likedByUser': likedByUser,
+        }, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         """
@@ -690,3 +698,18 @@ class RandomUserSuggestionsView(APIView):
         
         user_serializer = CustomUserSerializer(users, many=True)
         return Response(user_serializer.data)
+    
+class ReplyCreateAPIView(APIView):
+    """
+    API View to create a new reply to a comment.
+    """
+
+    def post(self, request, *args, **kwargs):
+        userId = self.kwargs['userId']
+        user = CustomUser.objects.get(id=userId)
+        serializer = ReplySerializer(data=request.data)
+        print(serializer.is_valid())
+        if serializer.is_valid():
+            serializer.save(user=user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -2,13 +2,15 @@ from channels.middleware import BaseMiddleware
 from rest_framework.exceptions import AuthenticationFailed
 from django.db import close_old_connections
 from user.tokenauthentication import JWTAuthentication
-
+from user.token import verify_and_update_token
+from channels.exceptions import AcceptConnection
+from jwt.exceptions import ExpiredSignatureError
+from tokenize import TokenError
 
 
 class JWTWebsocketMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         close_old_connections()
-
 
         query_string = scope.get("query_string",b"").decode("utf-8")
         query_parameters = {}
@@ -23,23 +25,31 @@ class JWTWebsocketMiddleware(BaseMiddleware):
                 "type":"websocket.close",
                 "code":4000
             })
+        
 
         authentication = JWTAuthentication()
-        try:
-            user = await authentication.authenticate_websocket(scope,token)
-            if user is not None:
-                scope['user'] = user
-            else:
-                await send({
-                    "type": "websocket.close",
-                    "code" : 4000
-                })
 
-            return await super().__call__(scope,receive,send)
+        try:
+            user = await authentication.authenticate_websocket(scope, token)
+            scope['user'] = user
+
+        except ExpiredSignatureError:
+            try:
+                new_tokens = verify_and_update_token(token)
+                if new_tokens:
+                    token = new_tokens['access']
+                    user = await authentication.authenticate_websocket(scope, token)
+                    scope['user'] = user 
+                else:
+                    raise AcceptConnection(4001) 
+
+            except TokenError: 
+                raise AcceptConnection(4001)  
+
         except AuthenticationFailed:
             await send({
-                    "type": "websocket.close",
-                    "code" : 4002
-                })
+                "type": "websocket.close",
+                "code": 4000
+            })
 
-
+        return await super().__call__(scope, receive, send)

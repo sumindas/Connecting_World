@@ -19,6 +19,7 @@ import Users from '../Admin/Pages/Users'
 import OtherUser from '../Userprofile/otherUserProfile'
 import Posts from '../Admin/Pages/Posts'
 import ChatRoom from '../Chatbox/ChatRoom'
+import NotificationComponent from '../Home/Notifications'
 
 
 
@@ -97,8 +98,11 @@ export default function LayOut() {
         {
           path : 'chats/:id',
           element : <ChatRoom />
-        }
-      
+        },
+        {
+          path : 'notificatins/:id',
+          element : <NotificationComponent />
+        },
       ]
     }
   ])

@@ -75,6 +75,7 @@ export default function UserProfile() {
 
   const handleLogout = (e) => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     dispatch(userLogout());
     console.log("Success");
     navigate("/");

@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'chat',
+    'django_celery_results',
+    'django_celery_beat',
     
 ]
 
@@ -224,6 +226,18 @@ CHANNEL_LAYERS = {
     },
 }
 
+#celery settings
+
+CELERY_BROKER_URL= 'redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT= ['application/json']
+CELERY_RESULT_SERIALIZER= 'json'
+CELERY_TASK_SERIALIZER=  'json' 
+CELERY_TIMEZONE= 'Asia/Kolkata' 
+CELERY_RESULT_BACKEND = 'django-db'
+
+#celery beat
+
+CELERY_BEAT_SCHEDULER= 'django_celery_beat.scheduler:DatabseScheduler'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

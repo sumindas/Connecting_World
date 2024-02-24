@@ -19,7 +19,6 @@ const UserProfileSettings = () => {
   };
 
   const handleDeleteAccount = () => {
-    // Add your account deletion logic here
     console.log('Delete Account clicked');
   };
 

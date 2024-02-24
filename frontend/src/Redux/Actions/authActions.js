@@ -51,8 +51,10 @@ export const login = (email,password,navigate) => async (dispatch) =>{
     console.log(response)
     if(response.status === 200){
       dispatch(setLogin(response.data))
+      console.log("UserDetails:",response.data.user.id)
       console.log("token:",response.data.jwt)
       localStorage.setItem('token', response.data.jwt)
+      localStorage.setItem('userId',response.data.user.id)
       console.log("userid:",response.data.user.id)
       dispatch(clearError())
       navigate('/home/profile')

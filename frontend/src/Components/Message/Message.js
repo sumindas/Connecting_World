@@ -8,9 +8,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 export default function Message() {
-  const [followedUsers, setFollowedUsers] = useState([]);
-  const CurrentUser = useSelector((state) => state.auth.user);
-  const userId = CurrentUser?.user?.id;
+  const [followedUsers, setFollowedUsers] = useState([])
+  const userId = localStorage.getItem('userId')
 
   useEffect(() => {
     const fetchFollowedUsers = async () => {
@@ -26,21 +25,15 @@ export default function Message() {
 
     fetchFollowedUsers();
   }, [userId]);
+  
 
   return (
-    <div className="Messages">
+    <div className="Messages" style={{marginLeft:'15px'}}>
       <div className="message-top flex justify-between items-center px-4 py-2 bg-gray-200 rounded-lg text-center">
         <h4 className="text-lg ml-8 font-semibold">Messages</h4>
         <FontAwesomeIcon icon={faEdit} className="text-gray-500" />
       </div>
-      <div className="message-search flex items-center px-4 py-2 bg-white border-b border-gray-200">
-        <FontAwesomeIcon icon={faSearch} className="text-gray-500" />
-        <input
-          type="search"
-          placeholder="Search Message"
-          className="ml-2 outline-none"
-        />
-      </div>
+      
       <div className="border-div"></div>
       {followedUsers.length > 0 ? (
         followedUsers.map((user) => (

@@ -11,9 +11,8 @@ const FeedItem = ({ post }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
-  const CurrentUserData = useSelector((state)=>state.auth.user)
   console.log("=====",post)
-  const userId = CurrentUserData?.user?.id
+  const userId = localStorage.getItem('userId')
   const [showComments, setShowComments] = useState(false);
 
 
@@ -32,7 +31,6 @@ const FeedItem = ({ post }) => {
         setLikeCount(likeResponse.data.count);
         setLiked(likeResponse.data.likedByUser);
 
-        // Fetch comment count
         const commentResponse = await axios.get(
           `${BASE_URL}/posts/${post.id}/comments/`
         );
@@ -113,7 +111,6 @@ const FeedItem = ({ post }) => {
           ))}
       </div>
   
-      {/* Action Buttons */}
       <div className="flex justify-between items-center mt-4">
         <div className="flex items-center">
           <button
