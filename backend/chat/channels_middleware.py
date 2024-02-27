@@ -28,6 +28,7 @@ class JWTWebsocketMiddleware(BaseMiddleware):
         
 
         authentication = JWTAuthentication()
+        user = None
 
         try:
             user = await authentication.authenticate_websocket(scope, token)
@@ -35,7 +36,7 @@ class JWTWebsocketMiddleware(BaseMiddleware):
 
         except ExpiredSignatureError:
             try:
-                new_tokens = verify_and_update_token(token)
+                new_tokens = verify_and_update_token(token,user)
                 if new_tokens:
                     token = new_tokens['access']
                     user = await authentication.authenticate_websocket(scope, token)
@@ -43,8 +44,12 @@ class JWTWebsocketMiddleware(BaseMiddleware):
                 else:
                     raise AcceptConnection(4001) 
 
-            except TokenError: 
-                raise AcceptConnection(4001)  
+            except (ExpiredSignatureError, TokenError):
+                await send({
+                            "type": "websocket.close",
+                            "code":  4000  
+                             })
+                raise AcceptConnection(4001)
 
         except AuthenticationFailed:
             await send({

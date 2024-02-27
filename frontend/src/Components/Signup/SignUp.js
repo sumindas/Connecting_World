@@ -22,15 +22,24 @@ export const SignUp = () => {
   
 
 
-  // const handleGoogleSignIn =(googleToken,navigate) => async (response) => {
-  //   try {
-  //     const response = await httpRequest(`${BASE_URL}/google/`, { token: googleToken });
-  //     console.log("Google:",response)
-  //     navigate('/home/profile')
-  // } catch (error) {
-  //     console.log("Google error:",error)
-  // }
-  // };
+  const handleGoogleSignIn = (googleToken, navigate) => async () => {
+    try {
+      const response = await httpRequest(`${BASE_URL}/auth/`, {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: googleToken }),
+      });
+  
+      console.log("Google:", response);
+
+      navigate('/home/profile');
+    } catch (error) {
+      console.error("Google error:", error);
+
+    }
+  };
 
   
 
@@ -61,10 +70,10 @@ export const SignUp = () => {
           <input type="password" placeholder="password" value={userData.password} onChange={(e) => setUserData({ ...userData, password: e.target.value })} />
           {authError && <p style={{ color: 'white', textAlign: 'center' }}>{authError}</p>}
           <button className='btn register-btn' type='submit'>Register</button>
-          {/* <GoogleOAuthProvider clientId="73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId="73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com">
             <GoogleLogin  className="google-btn" buttonText="SignUp with Google"onSuccess={handleGoogleSignIn}
         onFailure={(error) => console.error('Google Sign-In failed', error)}   cookiePolicy={'single_host_origin'} type="submit" jsSrc="https://apis.google.com/js/api.js" />
-          </GoogleOAuthProvider> */}
+          </GoogleOAuthProvider>
         </form>
       </div>
     </div>

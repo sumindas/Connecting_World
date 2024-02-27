@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/img-redundant-alt */
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./leftbar.css";
 import { Link } from "react-router-dom";
 
@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { BASE_URL } from "../../Api/api";
 import Message from "../Message/Message";
+
 
 export default function LeftBar() {
   const CurrentUser = useSelector((state) => state.auth.user);

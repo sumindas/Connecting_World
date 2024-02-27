@@ -9,9 +9,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['id', 'bio', 'date_of_birth', 'location','profile_image','cover_photo']
-        
+
+
+class OnlineUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    class Meta:
+        model = OnlineUser
+        fields = ['username','is_online']
+            
 class CustomUserSerializer(serializers.ModelSerializer):
     userprofile = UserProfileSerializer(read_only=True)
+    is_online = serializers.SerializerMethodField()
     email = serializers.EmailField(
     required = True,
     validators = [UniqueValidator(queryset=CustomUser.objects.all(),message="Email Already Exists")]
@@ -19,10 +27,18 @@ class CustomUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CustomUser
-        fields = ['id','username','password','full_name','email','ph_no','is_verified','userprofile']
+        fields = ['id','username','password','full_name','email','ph_no','is_verified','userprofile','is_online']
         extra_kwargs = {
             'password': {'write_only':True}
         }
+    
+    def get_is_online(self, obj):
+        
+        try:
+            online_user = OnlineUser.objects.get(user=obj)
+            return online_user.is_online
+        except OnlineUser.DoesNotExist:
+            return False
         
     def create(self, validated_data):
         password = validated_data.pop('password', None)
@@ -37,6 +53,8 @@ class VerifyUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField()
     
+
+
     
 class GoogleSerializers(serializers.ModelSerializer):
     
@@ -108,6 +126,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id','user', 'post', 'content', 'created_at']
 
 class ReplySerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
     class Meta:
         model = Reply
         fields = ['user', 'comment', 'content', 'created_at']

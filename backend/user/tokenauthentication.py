@@ -16,18 +16,6 @@ class JWTAuthentication(BaseAuthentication):
         return CustomUser.objects.get(id=user_id)
     
     
-    # def is_token_expired(self,token):
-    #     try:
-    #         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-    #         expiration_time = payload['exp']
-    #         current_time = datetime.utcnow().timestamp()
-    #         return current_time > expiration_time
-    #     except jwt.ExpiredSignatureError:
-    #         return True
-    #     except jwt.InvalidTokenError:
-    #         return False
-    
-    
     async def authenticate_websocket(self, scope, token):
         try:
             token_bytes = token.encode('utf-8')
@@ -35,6 +23,6 @@ class JWTAuthentication(BaseAuthentication):
             user_id = payload['id']
             user = await self.get_user(user_id)
             return user
-        except (jwt.DecodeError,ExpiredSignatureError,InvalidTokenError, CustomUser.DoesNotExist):
+        except CustomUser.DoesNotExist:
             raise AcceptConnection(4000)
     

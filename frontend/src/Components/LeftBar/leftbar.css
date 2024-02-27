@@ -40,6 +40,23 @@ hr{
 }
 
 
+/* leftbar.css */
+.online-status {
+    width:  10px;
+    height:  10px;
+    border-radius:  50%;
+    margin-left:  10px;
+  }
+  
+  .online-status.green {
+    background-color: green;
+  }
+  
+  .online-status.gray {
+    background-color: gray;
+  }
+  
+
 @media (max-width:1024px) {
     .left-container{
         width: fit-content;

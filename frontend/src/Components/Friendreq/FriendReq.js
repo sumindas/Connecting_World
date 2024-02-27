@@ -86,7 +86,7 @@ export default function FriendReq() {
               className="btn btn-primary"
               onClick={() => handleFollow(friend.id)}
             >
-              {friend.following ? "Unfollow" : "Follow"}
+              {friend.following ? "Friends" : "Follow"}
             </button>
           </div>
         </div>

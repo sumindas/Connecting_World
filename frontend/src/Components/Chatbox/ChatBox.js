@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import "./chatbox.css";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowCircleRight,
-  faFileAlt,
-  faPhone,
-  faVideo,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowCircleRight, faVideo } from "@fortawesome/free-solid-svg-icons";
 import { useParams } from "react-router-dom";
 import { BASE_URL } from "../../Api/api";
 import { useSelector } from "react-redux";
+
+import "./chatbox.css";
 
 export default function ChatBox() {
   const [user, setUser] = useState(null);
@@ -19,13 +14,12 @@ export default function ChatBox() {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const socketRef = useRef(null);
-  const CurrentUser = useSelector((state) => state.auth.user);
-  const userId = CurrentUser?.user?.id;
+  const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    console.log("Messages state updated:", messages);
+    console.log("Messages updated:", messages);
   }, [messages]);
 
   useEffect(() => {
@@ -37,6 +31,7 @@ export default function ChatBox() {
         console.error("Error fetching user data:", error);
       }
     };
+
     const fetchMessages = async () => {
       try {
         const response = await axios.get(
@@ -47,15 +42,12 @@ export default function ChatBox() {
             },
           }
         );
-        console.log("Messages:", response.data);
         setMessages(response.data);
       } catch (error) {
         console.error("Error fetching messages:", error);
       }
     };
 
-    fetchUser();
-    fetchMessages();
     const initializeWebSocket = () => {
       if (
         !socketRef.current ||
@@ -69,7 +61,6 @@ export default function ChatBox() {
           try {
             const data = JSON.parse(event.data);
             if (data.message) {
-              console.log("new", data.message);
               setMessages((prevMessages) => [...prevMessages, data.message]);
             } else {
               console.error("Unexpected message format:", data);
@@ -91,7 +82,8 @@ export default function ChatBox() {
       }
     };
 
-    initializeWebSocket();
+    fetchUser();
+    fetchMessages().then(() => initializeWebSocket());
 
     return () => {
       if (socketRef.current) {
@@ -99,10 +91,6 @@ export default function ChatBox() {
       }
     };
   }, [id, token, userId]);
-
-  if (!user) {
-    return <div>Loading...</div>;
-  }
 
   const sendMessage = (event) => {
     event.preventDefault();
@@ -118,68 +106,77 @@ export default function ChatBox() {
         message: message,
       });
       socketRef.current.send(messageData);
-      console.log("Message sent:", messageData);
       setNewMessage("");
     }
   };
-  console.log("object", messages);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   const profileImage = user?.userprofile?.profile_image;
   const fullName = user?.full_name;
   const username = user?.username;
 
   return (
-    <>
-      <div className="chat-box">
-        <div className="chat-box-top">
-          <img src={profileImage || ""} alt={fullName || ""} />
-          <div className="user-name">
-            <h3>{fullName || ""}</h3>
-            <h5>{username || ""}</h5>
-          </div>
-          {/* <div className="call-icons">
-            <label className='btn btn-primary' htmlFor="CFile">
-              <FontAwesomeIcon icon={faVideo} />
-            </label>
-            <label className='btn btn-primary' htmlFor="CFile">
-              <FontAwesomeIcon icon={faPhone} />
-            </label>
-          </div> */}
+    <div className="chat-box">
+      <div className="chat-box-top">
+        <img src={profileImage || ""} alt={fullName || ""} />
+        <div className="user-name">
+          <h3>{fullName || ""}</h3>
+          <h5>{username || ""}</h5>
         </div>
-        <div className="chat-box-bottom">
-          <div className="messages flex flex-col-reverse space-y-reverse space-y-4 overflow-y-auto">
-            {messages.map((message) => (
-              <p
-                key={message.id}
-                className={`p-2 rounded-lg max-w-xs ${
-                  message.user?.id === userId
-                    ? "bg-green-200 self-end"
-                    : "bg-white self-start"
-                }`}
-              >
-                {message.content}{" "}
-              </p>
-            ))}
-          </div>
-          <form className="new-message-form" onSubmit={sendMessage}>
-            <input
-              type="text"
-              placeholder="Write Something"
-              value={newMessage}
-              onChange={(event) => setNewMessage(event.target.value)}
-              onKeyPress={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  sendMessage(event);
-                }
-              }}
-            />
-            <button type="submit" className="btn btn-primary">
-              <FontAwesomeIcon icon={faArrowCircleRight} />
-              Send
-            </button>
-          </form>
+        <div className="call-icons">
+          <label className="btn btn-primary" htmlFor="CFile">
+            <FontAwesomeIcon icon={faVideo} />
+          </label>
         </div>
       </div>
-    </>
+      <div className="chat-box-bottom">
+        <div className="messages flex flex-col-reverse space-y-reverse space-y-4 overflow-y-auto">
+          {messages.map((message) => {
+            if (typeof message === "object" && message.id && message.content) {
+              return (
+                <p
+                  key={message.id}
+                  className={`p-2 rounded-lg max-w-xs ${
+                    message.user?.id == userId
+                      ? "bg-blue-500 text-white self-end"
+                      : "bg-white text-black self-start"
+                  }`}
+                >
+                  {message.content}
+                </p>
+              );
+            }
+            return null; // or handle unexpected data differently
+          })}
+        </div>
+        <form
+          style={{ marginTop: "20px" }}
+          className="new-message-form"
+          onSubmit={sendMessage}
+        >
+          <input
+            type="text"
+            placeholder="Write Something"
+            value={newMessage}
+            onChange={(event) => setNewMessage(event.target.value)}
+            onKeyPress={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                sendMessage(event);
+              }
+            }}
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full"
+          >
+            <FontAwesomeIcon icon={faArrowCircleRight} className="text-lg" />
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }

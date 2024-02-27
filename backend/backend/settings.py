@@ -41,18 +41,26 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt',
     'django.core.mail',
     'django.contrib.sites',
     'rest_framework.authtoken',
     'rest_framework',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'user',
     'corsheaders',
     'channels',
     'chat',
     'django_celery_results',
     'django_celery_beat',
+    'oauth2_provider',
+    'social_django',
+    'drf_social_oauth2',
     
 ]
 
@@ -83,10 +91,14 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
 ]
+
+
 
 AUTH_USER_MODEL = 'user.CustomUser'
 
@@ -245,14 +257,21 @@ EMAIL_HOST_PASSWORD = 'itcy nios hbln jskz'
 
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
     'rest_framework_simplejwt.authentication.JWTAuthentication',
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'drf_social_oauth2.backends.DjangoOAuth2',
+    'social_core.backends.google.GoogleOAuth2',
 ]
 
-# SOCIAL_AUTH_URL_NAMESPACE = 'social:auth'
-# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com'
-# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '73138496489-4bdcphm1b3sstse5cpnhlocfeqbrs2e7.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
 
 APPEND_SLASH=False
 

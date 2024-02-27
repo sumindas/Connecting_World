@@ -23,6 +23,9 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.parsers import JSONParser
 from django.core.exceptions import ValidationError
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
 from django.db.models import Prefetch,Q
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -77,7 +80,6 @@ class SignUpView(APIView):
                 'data': serializer.data
             })
         except Exception as e:
-            print("------------------")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 class Verify_Otp(APIView):
     def post(self,request):
@@ -192,13 +194,18 @@ class LoginView(APIView):
         if provider != 'google':
             if not user.check_password(password):
                 return Response({'error': 'Password Incorrect'},status=status.HTTP_400_BAD_REQUEST)    
-
+        online_user ,created = OnlineUser.objects.get_or_create(user=user)
+        online_user.is_online = True
+        online_user.last_seen = timezone.now()
+        online_user.save()
         payload = {
-            'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-            'iat': datetime.datetime.now(datetime.timezone.utc),
+            'id': user.id,  
+            'exp': timezone.now() + timezone.timedelta(minutes=60),
+            'iat': timezone.now(),
         }
+        print("Payload:",payload)
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+        print("Token:",token)
         response = Response()
 
         response.data = {
@@ -210,51 +217,72 @@ class LoginView(APIView):
             'message': 'Login Success'
         }
         return response
-    
 
-            
-            
-            
 
-    
 
 class userView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    
+    print("-------sss------")
+    
     def get(self, request):
         auth_header = request.headers.get('Authorization')
-        print("====",request.user)
-
+        print("===",auth_header)
         if not auth_header or 'Bearer ' not in auth_header:
+            print("Authorization header missing or malformed")
             raise AuthenticationFailed("Not authorized")
-        token = auth_header.split('Bearer ')[1]
+        token = auth_header.split('Bearer ')[1].strip()
+        print("Extracted token:", token)
+        
         try:
+
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            print("Decoded Payload:", payload)
+            print("Token decoded successfully:", payload)
             user = CustomUser.objects.filter(id=payload['id']).first()
-            user_serializer = CustomUserSerializer(user)
+            if user is None:
+                raise AuthenticationFailed("User not found")
             
+            user_serializer = CustomUserSerializer(user)
             user_profile = UserProfile.objects.filter(user=user).first()
             user_profile_serializer = UserProfileSerializer(user_profile)
             
             response_data = {
-                'user':user_serializer.data,
-                'user_profile' :user_profile_serializer.data
+                'user': user_serializer.data,
+                'user_profile': user_profile_serializer.data
             }
             
             return Response(response_data)
         except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Not authorized")
+            raise AuthenticationFailed("Token has expired")
         except jwt.InvalidTokenError:
             raise AuthenticationFailed("Invalid token")
-
-
-
+        except Exception as e:
+            print("Error decoding:", e)
+            raise AuthenticationFailed("An error occurred")
     
-    
+
+class SimpleView(APIView):
+    def get(self, request):
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZXhwIjoxNzA4OTU3MDExLCJpYXQiOjE3MDg5NTM0MTF9.-uPaf-z4YGCNDUw2p-_zfn31Rm88NFUIuvx5G39bcLk'
+        secret_key = 'secret'
+        try:
+            payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+            print("Token decoded successfully:", payload)
+        except Exception as e:
+            print("Error decoding token:", e)
+        return Response({"message": "This is a simple view"})
     
 class UserLogout(APIView):
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        user_id = self.kwargs.get('user_id')
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+        print(user,"logout")
+        online_user, created = OnlineUser.objects.get_or_create(user=user)
+        online_user.is_online = False
+        online_user.last_seen = timezone.now()
+        online_user.save()
         response = Response()
         response.delete_cookie('jwt')
         response.data = {
@@ -599,6 +627,10 @@ class FollowingAPIView(APIView):
             following_relationship.is_active = not following_relationship.is_active
             following_relationship.save()
             print("Relation:",following_relationship.is_active)
+            
+            # if not following_relationship.is_active:
+            #     following_relationship.is_deleted = True
+            #     following_relationship.save()
 
         
             message = "You are now following this user." if following_relationship.is_active else "You have unfollowed this user."
@@ -643,7 +675,7 @@ class FollowedUsersPostsView(generics.ListAPIView):
     def get_queryset(self):
         user_id = self.kwargs['user_id']
         user = CustomUser.objects.get(id=user_id)
-        followed_users = user.following.values_list('followed', flat=True)
+        followed_users = user.following.filter(followed__is_active=True).values_list('followed', flat=True)
         queryset = Post.objects.exclude(user=user).filter(user__in=followed_users,is_deleted=False).order_by('-created_at')
         return queryset
 
@@ -673,13 +705,30 @@ class ReplyCreateAPIView(APIView):
     """
     API View to create a new reply to a comment.
     """
+    
+    def get(self, request, *args, **kwargs):
+        commentId = self.kwargs['commentId']
+        comment = get_object_or_404(Comment, id=commentId)  
+        replies = Reply.objects.filter(comment=comment)
+        serializer = ReplySerializer(replies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         userId = self.kwargs['userId']
+        commentId = self.kwargs['commentId']
+        print("user",userId,"====","comment",commentId)
         user = CustomUser.objects.get(id=userId)
-        serializer = ReplySerializer(data=request.data)
+        comment = Comment.objects.get(id=commentId)
+        print(user,"---",comment)
+        data = request.data
+        data['user'] = user.id
+        data['comment'] = comment.id
+        serializer = ReplySerializer(data=data)
+        print("serializer",serializer)
         print(serializer.is_valid())
         if serializer.is_valid():
-            serializer.save(user=user)
+            serializer.save(user=user,comment=comment)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+

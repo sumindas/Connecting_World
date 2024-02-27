@@ -29,10 +29,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 class OnlineUser(models.Model):
-	user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    is_online = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(default=timezone.now)
 
-	def __str__(self):
-		return self.user.username
+    def __str__(self):
+        return self.user.username
 
 
 class UserProfile(models.Model):
@@ -133,6 +135,7 @@ class Following(models.Model):
     )
     is_active = models.BooleanField(default=False, verbose_name='Active')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default = False)
 
     class Meta:
         unique_together = ('follower', 'followed',)

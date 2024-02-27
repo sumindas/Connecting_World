@@ -8,8 +8,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 export default function Message() {
-  const [followedUsers, setFollowedUsers] = useState([])
-  const userId = localStorage.getItem('userId')
+  const [followedUsers, setFollowedUsers] = useState([]);
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     const fetchFollowedUsers = async () => {
@@ -18,6 +18,7 @@ export default function Message() {
           `${BASE_URL}/followed_users/${userId}/`
         );
         setFollowedUsers(response.data);
+        console.log("users---",response.data)
       } catch (error) {
         console.error("Error fetching followed users:", error);
       }
@@ -25,15 +26,18 @@ export default function Message() {
 
     fetchFollowedUsers();
   }, [userId]);
+
+
+ 
   
 
   return (
-    <div className="Messages" style={{marginLeft:'15px'}}>
+    <div className="Messages" style={{ marginLeft: "15px" }}>
       <div className="message-top flex justify-between items-center px-4 py-2 bg-gray-200 rounded-lg text-center">
         <h4 className="text-lg ml-8 font-semibold">Messages</h4>
         <FontAwesomeIcon icon={faEdit} className="text-gray-500" />
       </div>
-      
+
       <div className="border-div"></div>
       {followedUsers.length > 0 ? (
         followedUsers.map((user) => (
@@ -57,7 +61,25 @@ export default function Message() {
                 )}
               </div>
               <div className="message-body">
-                <h5 className="font-semibold">{user.username}</h5>
+                <div className="user-info flex items-center">
+                  <h5
+                    className="font-semibold"
+                    style={{ marginRight: "auto", textAlign: "left" }}
+                  >
+                    {user.username}
+                  </h5>
+                  <p
+                    className={`online-status ${
+                      user.is_online ? "green" : "gray"
+                    }`}
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "50%",
+                      marginLeft: "5px",
+                    }}
+                  ></p>
+                </div>
                 <p className="text-sm text-gray-500">{user.bio}</p>
               </div>
             </div>

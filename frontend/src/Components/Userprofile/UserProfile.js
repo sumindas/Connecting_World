@@ -18,7 +18,8 @@ import { Transition, Dialog } from "@headlessui/react";
 export default function UserProfile() {
   const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.auth.user);
-  const token = useSelector((state) => state.auth.token);
+  const token = localStorage.getItem('token')
+  console.log("token-",token)
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +32,7 @@ export default function UserProfile() {
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [coverPhoto, setCoverPhoto] = useState(null);
   const [userProfileId,setuserProfileId] = useState()
+  const userId = localStorage.getItem('userId')
  
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function UserProfile() {
       })
       .then((response) => {
         const userData = response.data;
+        console.log("UserData:",userData)
         setUserData(userData);
         dispatch(setUser(userData));
         setuserProfileId(userData.user.id)
@@ -73,13 +76,28 @@ export default function UserProfile() {
     setIsOpen(false);
   };
 
-  const handleLogout = (e) => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    dispatch(userLogout());
-    console.log("Success");
-    navigate("/");
+
+  const handleLogout = async (e) => {
+      try {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+         
+          const response = await axios.post(`${BASE_URL}/logout/${userId}/`);
+  
+          if (response.status !==  200) {
+              throw new Error('Logout failed');
+          }
+  
+          dispatch(userLogout());
+  
+          console.log("Success");
+          navigate("/");
+      } catch (error) {
+          console.error("Error logging out:", error);
+         
+      }
   };
+  
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();

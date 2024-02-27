@@ -59,3 +59,17 @@
 .message p{
     font-size: .9rem;
 }
+.online-status {
+  width:  10px;
+  height:  10px;
+  border-radius:  50%;
+  margin-left:  5px; /* Adjust the space between the username and the dot */
+}
+
+.online-status.green {
+  background-color: green;
+}
+
+.online-status.gray {
+  background-color: gray;
+}

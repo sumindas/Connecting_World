@@ -10,7 +10,7 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-def verify_and_update_token(token):
+def verify_and_update_token(token,user):
     """
     Function to verify Refresh token validity and optionally 
     return new tokens if specified

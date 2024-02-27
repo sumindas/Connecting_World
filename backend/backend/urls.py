@@ -10,6 +10,7 @@ urlpatterns = [
     path('',include('user.urls')),
     path('socialadmin/',include('socialadmin.urls')),
     path('chat/',include('chat.urls')),
+    path('auth/', include('drf_social_oauth2.urls', namespace='drf')),
     
 ]
 if settings.DEBUG:
