@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import ChatRoom, Message,Notification
 from user.serializer import CustomUserSerializer
+from user.models import Post
+from user.serializer import PostSerializer
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,7 +18,3 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ['id', 'chat_room', 'user', 'content','timestamp']
 
 
-class NotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
-        fields = ['user', 'follower', 'content', 'timestamp', 'read']

@@ -11,6 +11,7 @@ const authSlice = createSlice({
         login : false,
         token : null,
         admin_token : "",
+        reset_email:"",
         allUsers : [],
     },
     reducers :{
@@ -60,12 +61,16 @@ const authSlice = createSlice({
           state.user.bio = action.payload.bio;
           state.user.profileImage = action.payload.profileImage;
           state.user.coverPhoto = action.payload.coverPhoto;
-      }
+      },
+      setResetEmail: (state, action) => {
+        state.reset_email = action.payload; 
     },
+    },
+    
    
 })
 
 
-export const {setUser,setError,clearError,setEmail,setLogin,setToken,userLogout,adminLogin,adminLogout,usersList,userUpdate} = authSlice.actions
+export const {setUser,setError,clearError,setEmail,setLogin,setToken,userLogout,adminLogin,adminLogout,usersList,userUpdate,setResetEmail} = authSlice.actions
 
 export default authSlice.reducer

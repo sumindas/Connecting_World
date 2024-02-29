@@ -125,6 +125,7 @@ function CommentsList({ post }) {
       {comments.length === 0 ? (
         <p className="text-center">No comments yet.</p>
       ) : (
+
         comments.map((comment) => (
           <div key={comment.id} className="flex flex-col mb-4">
             <div className="flex items-center">
@@ -142,7 +143,7 @@ function CommentsList({ post }) {
                 <p className="text-sm">{comment.content}</p>
               </div>
             </div>
-            {comment.replies.map((reply) => (
+            {comment.replies?.map((reply) => (
               <div key={reply.id} className="flex items-center ml-4 mt-1">
                 {reply.user && reply.user.userprofile ? (
                   <img

@@ -31,7 +31,7 @@ export default function NavBar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionListRef = useRef(null);
   const CurrentUserName = CurrentUser?.user?.username;
-  const userId = CurrentUser?.user?.id
+  const userId = localStorage.getItem('userId')
 
   useEffect(() => {
     const handleClickOutside = (event) => {

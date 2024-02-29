@@ -1,7 +1,8 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .models import ChatRoom, Message,Notification
-from .serializers import ChatRoomSerializer, MessageSerializer,NotificationSerializer
+from .serializers import ChatRoomSerializer, MessageSerializer
+from user.serializer import NotificationSerializer
 from rest_framework.views import APIView
 from .utils import get_or_create_chat_room
 from rest_framework.decorators import api_view

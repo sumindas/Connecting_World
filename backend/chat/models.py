@@ -1,6 +1,6 @@
 from django.db import models
 import uuid
-from user.models import CustomUser
+from user.models import CustomUser,Post,Comment
 
 # Create your models here.
 
@@ -25,7 +25,9 @@ class Message(models.Model):
         
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications_received')
-    follower = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications_sent')
+    follower = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications_sent',null=True, blank=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)

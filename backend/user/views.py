@@ -31,6 +31,12 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from .tasks import send_mail_func
 from django.http import Http404
+from chat.models import Notification
+from .email import is_valid_email
+from django.utils.crypto import get_random_string
+from django.contrib.auth import get_user_model
+
+CustomUser = get_user_model()
 
 
 
@@ -52,6 +58,9 @@ class SignUpView(APIView):
 
         if not email and not full_name and not username and not password:
             return Response({'error': 'Please Fill Required Fields'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not is_valid_email(email) or not email.strip():
+            return Response({'error': 'Please Enter Valid Email'}, status=status.HTTP_400_BAD_REQUEST)
         
         if not username or not username.strip(): 
             return Response({'error': 'Username cannot be blank or contain only spaces'}, status=status.HTTP_400_BAD_REQUEST)
@@ -218,8 +227,51 @@ class LoginView(APIView):
         }
         return response
 
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        print("--",email)
+        if not email:
+            return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            send_otp_email(email)
+            return Response({'message': 'OTP sent to your email'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"Error":str(e)},status=status.HTTP_400_BAD_REQUEST)
+        
+class PasswordResetView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        otp = request.data.get('otp')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+        print(email,otp,new_password,confirm_password)
+
+        if not otp or not new_password or not confirm_password:
+            return Response({'error': 'Email, OTP, new password, and confirm password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return Response({'error': 'New password and confirm password do not match'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if otp != user.otp: 
+            return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+         
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
+    
 class userView(APIView):
     
     print("-------sss------")
@@ -566,6 +618,12 @@ class CommentCreateAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            Notification.objects.create(
+                user=comment_data.post.user, 
+                follower=comment_data.user,
+                post=comment_data.post,
+                content=f"{comment_data.user.username} commented on your post."
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -588,6 +646,8 @@ class CommentListAPIView(generics.ListCreateAPIView):
         post_id = self.kwargs['post_id']
         post = get_object_or_404(Post, id=post_id)  
         serializer.save(post=post, user=user)
+       
+        
     
 
 
@@ -628,9 +688,13 @@ class FollowingAPIView(APIView):
             following_relationship.save()
             print("Relation:",following_relationship.is_active)
             
-            # if not following_relationship.is_active:
-            #     following_relationship.is_deleted = True
-            #     following_relationship.save()
+            # if following_relationship.is_active:
+            #     Notification.objects.create(
+            #     user=followed_user,
+            #     follower=user,
+            #     content=f"{user.username} started following you."
+            # )
+            
 
         
             message = "You are now following this user." if following_relationship.is_active else "You have unfollowed this user."

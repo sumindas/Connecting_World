@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import *
 from rest_framework.validators import UniqueValidator
 from rest_framework.authentication import BaseAuthentication
+from chat.models import Notification
 
 
 
@@ -106,6 +107,17 @@ class PostSerializer(serializers.ModelSerializer):
                 print(f"Error Creating video {e}")
         return post
     
+class NotificationSerializer(serializers.ModelSerializer):
+    post = PostSerializer(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = ['user', 'follower', 'post', 'comment', 'content', 'timestamp', 'read']
+
+    def get_first_image_url(self, obj):
+        if obj.post and obj.post.postimage_set.exists():
+            return obj.post.postimage_set.first().images_url
+        return None
 
 
 class LikeSerializer(serializers.ModelSerializer):

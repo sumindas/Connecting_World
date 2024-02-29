@@ -20,6 +20,7 @@ import OtherUser from '../Userprofile/otherUserProfile'
 import Posts from '../Admin/Pages/Posts'
 import ChatRoom from '../Chatbox/ChatRoom'
 import NotificationComponent from '../Home/Notifications'
+import PasswordReset from '../Verification/PasswordReset'
 
 
 
@@ -58,6 +59,10 @@ export default function LayOut() {
     {
       path: '/verify',
       element: <Verification />
+    },
+    {
+      path : '/resetpassword',
+      element : <PasswordReset />
     },
     {
       path : '/admin',

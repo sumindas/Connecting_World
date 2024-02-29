@@ -65,7 +65,78 @@
     color: var(--color-primary);
     margin-top: 1rem;
 }
+.modal {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
 
+.modal-content {
+    background-color: white; 
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid white; 
+    width: 500px; 
+    border-radius: 2rem; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content h2 {
+    color: var(--color-primary); 
+}
+
+.modal-content p {
+    font-size: 0.9rem; 
+    color: black; 
+}
+
+.modal-content input {
+    padding: 1rem 0;
+    width: 90%;
+    height: 30px;
+    text-align: center;
+    border: 2px solid var(--color-primary);
+    background: transparent;
+    outline: none;
+    margin: 0 auto;
+    color: var(--color-primary);
+}
+
+.modal-content input::placeholder {
+    color: white; 
+    font-size: 1rem;
+    text-transform: capitalize;
+}
+
+.modal-btn {
+    color: var(--color-primary); 
+    background: white; 
+    border: none; 
+    padding: 0.5rem 1rem; 
+    margin-top: 1rem;
+    cursor: pointer; 
+}
+
+.modal-btn:hover {
+    background: #ddd; 
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        width: 90%; 
+        margin: 20% auto; 
+    }
+}
+
+   
 @media (max-width:600px) {
     .login .card{
         width: 90%;
