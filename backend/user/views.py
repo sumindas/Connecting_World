@@ -477,8 +477,6 @@ class UserPostListAPIView(APIView):
     
 
 
-
-
 class LikeAPIView(APIView):
     serializer_class = LikeSerializer
     
@@ -796,3 +794,20 @@ class ReplyCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+class ReportPostAPIView(APIView):
+    def post(self, request, post_id,user_id):
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({'error':'User Not Found'},status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ReportSerializer(data=request.data)
+        if serializer.is_valid():
+            report = serializer.save(post=post, user=user)
+            return Response({'message': 'Report submitted successfully'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

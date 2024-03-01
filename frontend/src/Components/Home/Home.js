@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import FeedItem from './FeedItem';
 import { BASE_URL } from '../../Api/api';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { addPost } from '../../Redux/Slice/postSlice';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -15,6 +17,7 @@ const Home = () => {
         const response = await axios.get(`${BASE_URL}/followed-posts/${userId}/`);
         console.log(response.data)
         setPosts(response.data);
+        
       } catch (error) {
         console.error("Failed to fetch posts: ", error);
       }

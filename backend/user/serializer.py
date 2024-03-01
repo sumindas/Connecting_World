@@ -112,7 +112,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['user', 'follower', 'post', 'comment', 'content', 'timestamp', 'read']
+        fields = ['id','user', 'follower', 'post', 'comment', 'content', 'timestamp', 'read']
 
     def get_first_image_url(self, obj):
         if obj.post and obj.post.postimage_set.exists():
@@ -152,4 +152,10 @@ class FollowingSerializer(serializers.ModelSerializer):
         
 
 
-
+class ReportSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+    post = PostSerializer(read_only=True)
+    
+    class Meta:
+        model = Report
+        fields = '__all__'

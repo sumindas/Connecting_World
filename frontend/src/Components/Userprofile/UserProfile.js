@@ -14,6 +14,7 @@ import { BASE_URL } from "../../Api/api";
 import axios from "axios";
 import { setUser, userLogout } from "../../Redux/Slice/authSlice";
 import { Transition, Dialog } from "@headlessui/react";
+import { resetState } from "../../Redux/Slice/postSlice";
 
 export default function UserProfile() {
   const dispatch = useDispatch();
@@ -81,6 +82,7 @@ export default function UserProfile() {
       try {
           localStorage.removeItem('token');
           localStorage.removeItem('userId');
+          localStorage.removeItem('CurrentUser')
          
           const response = await axios.post(`${BASE_URL}/logout/${userId}/`);
   
@@ -89,7 +91,8 @@ export default function UserProfile() {
           }
   
           dispatch(userLogout());
-  
+          dispatch(resetState())
+
           console.log("Success");
           navigate("/");
       } catch (error) {

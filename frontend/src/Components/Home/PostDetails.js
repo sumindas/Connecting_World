@@ -3,33 +3,31 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faHeart } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
-import { BASE_URL } from "../../Api/api";
 import { useSelector } from "react-redux";
-import CommentsList from "../Comments/Comments";
+import { useParams } from "react-router-dom";
+import CommentsList from "../Comments/Comments"; // Adjust the import path as necessary
+import { BASE_URL } from "../../Api/api";
 
-const PostCard = ({ post }) => {
+const SinglePostDetails = () => {
+  const { id } = useParams();
+  const postId = Number(id);
+  const userId = localStorage.getItem("userId");
+  const userPosts = useSelector((state) => state.post[userId] || []);
+  const post = userPosts.find((p) => p.id === postId);
+  console.log("Post:", post);
+  console.log("Image Path:", post.user.userprofile.profile_image);
+
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
-  const userId = localStorage.getItem('userId');
-
-  const replacer = (key, value) => {
-    if (typeof value === 'object' && value !== null) {
-      if (cache.includes(value)) {
-        return '[Circular Reference]';
-      }
-      cache.push(value);
-    }
-    return value;
-  };
 
   useEffect(() => {
     const fetchLikeAndCommentInfo = async () => {
       try {
         const likeResponse = await axios.get(`${BASE_URL}/likes/`, {
           params: {
-            postId: post.id,
+            postId: postId,
             userId: userId,
           },
         });
@@ -38,7 +36,7 @@ const PostCard = ({ post }) => {
         setLiked(likeResponse.data.likedByUser);
 
         const commentResponse = await axios.get(
-          `${BASE_URL}/posts/${post.id}/comments/`
+          `${BASE_URL}/posts/${postId}/comments/`
         );
         setCommentCount(commentResponse.data.length);
       } catch (error) {
@@ -46,25 +44,18 @@ const PostCard = ({ post }) => {
       }
     };
 
-    fetchLikeAndCommentInfo();
-  }, [post, userId]);
+    if (post) {
+      fetchLikeAndCommentInfo();
+    }
+  }, [post, postId, userId]);
 
   const handleLikeClick = async () => {
     setLiked(!liked);
-    const dataToSubmit = { postId: post.id, userId: userId };
-
-    console.log("Data to send:", JSON.stringify(dataToSubmit, replacer));
-
     try {
-      const response = await axios.post(
-        `${BASE_URL}/likes/`,
-        dataToSubmit,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${BASE_URL}/likes/`, {
+        postId: postId,
+        userId: userId,
+      });
       if (
         response.data.message === "Like created." ||
         response.data.message === "Like already exists."
@@ -76,11 +67,13 @@ const PostCard = ({ post }) => {
     }
   };
 
-  const cache = [];
-
   const toggleCommentsVisibility = () => {
     setShowComments(!showComments);
   };
+
+  if (!post || !post.user) {
+    return <div>Loading post details...</div>;
+  }
 
   return (
     <div className="bg-white shadow rounded-lg p-4 my-4">
@@ -89,10 +82,13 @@ const PostCard = ({ post }) => {
           <img
             src={`${BASE_URL}${post.user.userprofile.profile_image}`}
             alt={`Profile image of ${post.user.username}`}
-            className="w-10 h-10 rounded-full mr-4" // Adjust the size and styling as needed
+            className="w-10 h-10 rounded-full object-cover mr-4"
           />
         )}
         {post.user && <p className="font-bold text-lg">{post.user.username}</p>}
+        <small style={{ marginLeft: "10px" }}>
+          {new Date(post.created_at).toLocaleString()}
+        </small>
       </div>
 
       <h2 className="font-bold text-xl mt-4 mb-2">{post.title}</h2>
@@ -100,37 +96,41 @@ const PostCard = ({ post }) => {
 
       <div className="media">
         {post.images &&
-          post.images.length > 0 &&
-          post.images.map((imageObj, index) => (
+          post.images.map((image, index) => (
             <img
               key={index}
-              src={`${BASE_URL}${imageObj.images_url}`}
+              src={`${BASE_URL}${image.images_url}`}
               alt={`Image ${index}`}
-              className="media-item"
+              className="w-full h-auto"
             />
           ))}
 
         {post.videos &&
           post.videos.length > 0 &&
-          post.videos.map((videoObj, index) => (
-            <video key={index} controls className="media-item">
-              <source
-                src={`${BASE_URL}${videoObj.video_url}`}
-                type="video/mp4"
-              />
-              Your browser does not support the video tag.
-            </video>
-          ))}
+          post.videos.map(
+            (videoObj, index) =>
+              videoObj && (
+                <video key={index} controls className="w-full h-auto">
+                  <source
+                    src={`${BASE_URL}${videoObj.video_url}`}
+                    type="video/mp4"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+              )
+          )}
       </div>
 
       <div className="flex justify-between items-center mt-4">
         <div className="flex items-center">
-          <div className="action-item" onClick={handleLikeClick}>
-            <span className={`${liked ? "text-red-500" : ""}`}>
-              <FontAwesomeIcon icon={faHeart} />
-              {likeCount} Likes
-            </span>
-          </div>
+          <button
+            onClick={handleLikeClick}
+            className={`mr-2 px-3 py-1 text-sm font-semibold rounded ${
+              liked ? "text-red-500" : "text-gray-700"
+            } hover:text-red-500`}
+          >
+            <FontAwesomeIcon icon={faHeart} /> {likeCount}
+          </button>
           <button
             onClick={toggleCommentsVisibility}
             className="px-3 py-1 text-sm font-semibold rounded text-gray-700 hover:text-gray-500"
@@ -139,10 +139,9 @@ const PostCard = ({ post }) => {
           </button>
         </div>
       </div>
-
       {showComments && <CommentsList post={post} />}
     </div>
   );
 };
 
-export default PostCard;
+export default SinglePostDetails;

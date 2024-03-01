@@ -23,7 +23,7 @@ const OtherUser = () => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
-  const userId = CurrentUser?.user?.id;
+  const userId = localStorage.getItem('userId')
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {

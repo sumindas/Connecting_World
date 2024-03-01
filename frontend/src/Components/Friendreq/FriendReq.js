@@ -37,7 +37,6 @@ export default function FriendReq() {
       );
       console.log("Server Response:", response.data);
 
-      // Infer the following status based on the action
       const followingStatus = !friendSuggestions.find(friend => friend.id === friendId).following;
 
       setFriendSuggestions((currentFriendSuggestions) => {

@@ -60,6 +60,16 @@ class Post(models.Model):
     def __str__(self):
         return f'{self.user.username} - {self.created_at}'
 
+
+class Report(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'Report by {self.user.username} on {self.post.created_at}'
+
 class PostImage(models.Model):
     post = models.ForeignKey(Post,on_delete=models.CASCADE)
     images_url = models.ImageField(upload_to='post_images/')

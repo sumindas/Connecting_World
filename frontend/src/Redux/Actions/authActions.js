@@ -55,6 +55,7 @@ export const login = (email,password,navigate) => async (dispatch) =>{
       console.log("token:",response.data.jwt)
       localStorage.setItem('token', response.data.jwt)
       localStorage.setItem('userId',response.data.user.id)
+      localStorage.setItem('CurrentUser',JSON.stringify(response.data))
       console.log("userid:",response.data.user.id)
       dispatch(clearError())
       navigate('/home/profile')

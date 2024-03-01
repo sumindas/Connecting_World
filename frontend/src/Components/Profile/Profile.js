@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import UserProfile from "../Userprofile/UserProfile";
 import AddPost from "../Addpost/AddPost";
@@ -8,6 +8,7 @@ import Feeds from "../Feeds/Feeds";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BASE_URL } from "../../Api/api";
+import { addPost } from "../../Redux/Slice/postSlice";
 
 export default function Profile() {
   const token = useSelector((state) => state.auth.token);
@@ -15,6 +16,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const userId = useSelector((state)=>state.auth.user?.user?.id)
   console.log("USER:",userId)
+  const dispatch = useDispatch()
 
 
   const updateFeed = useCallback((newPost) => {
@@ -31,13 +33,16 @@ export default function Profile() {
   useEffect(() => {
     if (!token) {
       navigate("/");
-    } else {
-      
+    } else {  
       const fetchInitialPosts = async () => {
         try {
           const response = await axios.get(`${BASE_URL}/posts/${userId}/`);
           if (response.data) {
             setFeeds(response.data);
+            console.log("posts in profile:",response.data)
+            response.data.forEach(post => {
+              dispatch(addPost({ userId, post }));
+            });
           }
         } catch (error) {
           console.error("Error fetching posts:", error);
@@ -45,7 +50,7 @@ export default function Profile() {
       };
       fetchInitialPosts();
     }
-  }, [token, navigate, userId]);
+  }, [token, navigate, userId, dispatch]);
 
   const removePostFromFeed = useCallback((deletedPostId) => {
     setFeeds((currentFeeds) => currentFeeds.filter(post => post.id !== deletedPostId));

@@ -12,7 +12,7 @@ export default function DarkMode() {
 
   return (
         <div className="dark-mode-icon">
-            <FontAwesomeIcon icon={faLightbulb} onClick={DarkHandle} />
+            <FontAwesomeIcon icon={faLightbulb} onClick={DarkHandle} className="text-xl cursor-pointer" />
         </div>
   )
 }

@@ -21,6 +21,7 @@ import Posts from '../Admin/Pages/Posts'
 import ChatRoom from '../Chatbox/ChatRoom'
 import NotificationComponent from '../Home/Notifications'
 import PasswordReset from '../Verification/PasswordReset'
+import SinglePostDetails from '../Home/PostDetails'
 
 
 
@@ -107,6 +108,10 @@ export default function LayOut() {
         {
           path : 'notificatins/:id',
           element : <NotificationComponent />
+        },
+        {
+          path : 'postdetail/:id',
+          element : <SinglePostDetails />
         },
       ]
     }

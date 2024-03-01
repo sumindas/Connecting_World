@@ -5,9 +5,6 @@ import React, { useEffect, useState } from "react";
 import "./navbar.css";
 import { Link } from "react-router-dom";
 
-//Static............
-import CurrentUser from "../../FackApis/CurrentUserData";
-
 //Fontawesome Icon........
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -31,9 +28,28 @@ export default function NavBar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionListRef = useRef(null);
   const CurrentUserName = CurrentUser?.user?.username;
-  const userId = localStorage.getItem('userId')
+  const userId = localStorage.getItem("userId");
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get(
+          `${BASE_URL}/chat/user/${userId}/notifications/`
+        );
+        const unreadCount = response.data.filter(
+          (notification) => !notification.read
+        ).length;
+        setUnreadNotificationsCount(unreadCount);
+      } catch (error) {
+        console.error("There was a problem with your fetch operation:", error);
+      }
+    };
+
+    if (userId) {
+      fetchNotifications();
+    }
+
     const handleClickOutside = (event) => {
       if (
         suggestionListRef.current &&
@@ -45,7 +61,7 @@ export default function NavBar() {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside); // Cleanup
-  }, []);
+  }, [userId]);
 
   const handleSearch = async () => {
     try {
@@ -85,9 +101,9 @@ export default function NavBar() {
             />
             <FontAwesomeIcon onClick={handleSearch} icon={faSearch} />
           </div>
-          
-            {showSuggestions && (
-              <div className="Nav-Searchbar">
+
+          {showSuggestions && (
+            <div className="Nav-Searchbar">
               <ul
                 ref={suggestionListRef}
                 style={{ width: "250px" }}
@@ -111,31 +127,36 @@ export default function NavBar() {
                   <li className="no-suggestions">No users found</li>
                 )}
               </ul>
-              </div>
-            )}
-          </div>
-        
+            </div>
+          )}
+        </div>
 
         {/* ............Nav Area Right............... */}
 
         <div className="nav-right">
-          
-          <Link to={`/home/notificatins/${userId}`}>
-            <FontAwesomeIcon icon={faBell} />
+          <Link to={`/home/notificatins/${userId}`} className="relative">
+            <div className="bell-icon">
+              <FontAwesomeIcon icon={faBell} className="text-xl" />
+              {unreadNotificationsCount > 0 && (
+                <span style={{marginLeft:'-2px'}} className="notification-count absolute top-0  right--1 bg-red-500 text-white text-xs rounded-full px-1 py-0.25">
+                  {unreadNotificationsCount}
+                </span>
+              )}
+            </div>
           </Link>
+
           <DarkMode />
           <div className="user">
             {CurrentUser && CurrentUser.user_profile ? (
               <img
                 src={`${BASE_URL}${CurrentUser.user_profile.profile_image}`}
                 alt="Profile Image"
-                className="profile-image" 
+                className="profile-image"
               />
             ) : null}
             <h4 style={{ marginLeft: "10px" }}>
               {CurrentUser?.user?.username}
             </h4>
-            {/* Add other user details here as needed */}
           </div>
         </div>
       </div>

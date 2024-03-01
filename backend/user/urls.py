@@ -36,6 +36,7 @@ urlpatterns = [
     path('followed-posts/<int:user_id>/', FollowedUsersPostsView.as_view(), name='followed-posts'),
     path('followed_users/<int:user_id>/',FollowedUsersView.as_view(),name='followed_users'),
     path('user_suggestions/<int:user_id>/',RandomUserSuggestionsView.as_view(),name='user_suggestions'),
+    path('report_post/<int:post_id>/<int:user_id>/', ReportPostAPIView.as_view(), name='report_post_api'),
 ]
 
 if settings.DEBUG:

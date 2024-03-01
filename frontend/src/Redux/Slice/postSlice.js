@@ -1,15 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {}
+
 const postSlice = createSlice({
  name: "post",
- initialState: {}, 
+ initialState,
  reducers: {
     addPost: (state, action) => {
       const { userId, post } = action.payload;
       if (!state[userId]) {
         state[userId] = []; 
       }
-      state[userId].push(post);
+      const postExists = state[userId].some(existingPost => existingPost.id === post.id);
+      if (!postExists){
+        state[userId].push(post);
+      }
     },
     editPost: (state, action) => {
       const { userId, post } = action.payload;
@@ -35,8 +40,9 @@ const postSlice = createSlice({
         }
       }
     },
+    resetState : () => initialState, 
  },
 });
 
-export const { addPost, deletePost,editPost,updatePost } = postSlice.actions;
+export const { addPost, deletePost,editPost,updatePost,resetState } = postSlice.actions;
 export default postSlice.reducer;

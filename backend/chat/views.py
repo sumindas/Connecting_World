@@ -44,3 +44,15 @@ class UserNotificationsView(generics.ListAPIView):
         except CustomUser.DoesNotExist:
             return Response({"error": "User Not Found"}, status=status.HTTP_400_BAD_REQUEST)
         return Notification.objects.filter(user=user).order_by('-timestamp')
+    
+    
+class MarkNotificationAsReadView(APIView):
+    def get(self, request,notification_id, format=None):
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            notification.read = True
+            notification.save()
+            serializer = NotificationSerializer(notification)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Notification.DoesNotExist:
+            return Response({"error": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)

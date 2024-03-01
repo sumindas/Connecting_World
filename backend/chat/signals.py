@@ -10,7 +10,7 @@ from user.models import Like,Comment,Following
 
 @receiver(post_save, sender=Like)
 def create_notification_for_like(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.user != instance.post.user:
         Notification.objects.create(
             user=instance.post.user, 
             follower=instance.user,
@@ -22,16 +22,21 @@ def create_notification_for_like(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Following)
 def create_notification_for_following(sender, instance, created, **kwargs):
     print(f"Signal triggered for Following instance {instance.id}, created: {created}, is_active: {instance.is_active}")
-    if created and instance.is_active:
-        Notification.objects.create(
+    if created and instance.follower != instance.followed:
+        print("creating Notification")
+        try:
+            Notification.objects.create(
             user=instance.followed,
             follower=instance.follower,
             content=f"{instance.follower.username} started following you."
         )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+
 
 @receiver(post_save, sender=Comment)
 def create_notification_for_comment(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.user != instance.post.user:
         Notification.objects.create(
             user=instance.post.user, 
             follower=instance.user,

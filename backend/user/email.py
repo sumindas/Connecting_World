@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 from .models import CustomUser
+import re
 
 
 def send_otp_email(email):
