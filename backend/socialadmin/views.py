@@ -9,6 +9,9 @@ from rest_framework import status
 from user.serializer import *
 from django.shortcuts import get_list_or_404
 from rest_framework import generics
+from django.db.models import Count, F, Sum, Q
+from django.db.models.functions import TruncMonth
+from django.utils import timezone
 
 # Create your views here.
 class AdminLogin(APIView):
@@ -92,3 +95,25 @@ class AdminPostsList(APIView):
 
         serializer = PostSerializer(post)
         return Response(serializer.data)
+    
+def get_dashboard_data():
+    total_users = CustomUser.objects.count()
+    posts_by_month = Post.objects.annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        count=Count('id')
+    ).order_by('month')
+
+    total_posts = Post.objects.count()
+
+    return {
+        'total_users': total_users,
+        'posts_by_month': posts_by_month,
+        'total_posts': total_posts,
+    }
+
+
+class AdminDashboardView(APIView):
+    def get(self, request):
+        data = get_dashboard_data()
+        return Response(data)

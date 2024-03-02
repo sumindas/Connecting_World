@@ -22,6 +22,7 @@ import ChatRoom from '../Chatbox/ChatRoom'
 import NotificationComponent from '../Home/Notifications'
 import PasswordReset from '../Verification/PasswordReset'
 import SinglePostDetails from '../Home/PostDetails'
+import AdminDashboard from '../Admin/Pages/AdminDashboard'
 
 
 
@@ -71,7 +72,7 @@ export default function LayOut() {
     },
     {
       path : '/adminhome',
-      element : <AdminHome />
+      element : <AdminDashboard />
     },
     {
       path : '/userslist',
