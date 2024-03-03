@@ -77,6 +77,24 @@
   .call-icons label svg {
     font-size: 16px; 
   }
+
+  .video-call-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+   }
+   
+   .video-call-controls button {
+    margin: 0 5px;
+   }
+   
+   video {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin-bottom: 20px;
+   }
+   
   
 
   @media (max-width:768px) {

@@ -19,7 +19,7 @@ export default function ChatBox() {
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    console.log("Messages updated:", messages);
+    console.log("Component re-rendered with new messages:", messages);
   }, [messages]);
 
   useEffect(() => {
@@ -43,6 +43,7 @@ export default function ChatBox() {
           }
         );
         setMessages(response.data);
+        console.log(messages,"---------------")
       } catch (error) {
         console.error("Error fetching messages:", error);
       }
@@ -60,8 +61,16 @@ export default function ChatBox() {
         socketRef.current.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            if (data.message) {
-              setMessages((prevMessages) => [...prevMessages, data.message]);
+            if (
+              typeof data === "object" &&
+              data.id &&
+              data.chat_room &&
+              data.user &&
+              data.content &&
+              data.timestamp
+            ) {
+              setMessages((prevMessages) => [...prevMessages, data]);
+              console.log(data,"---")
             } else {
               console.error("Unexpected message format:", data);
             }
@@ -133,25 +142,30 @@ export default function ChatBox() {
         </div>
       </div>
       <div className="chat-box-bottom">
-        <div className="messages flex flex-col-reverse space-y-reverse space-y-4 overflow-y-auto">
-          {messages.map((message) => {
-            if (typeof message === "object" && message.id && message.content) {
-              return (
-                <p
-                  key={message.id}
-                  className={`p-2 rounded-lg max-w-xs ${
-                    message.user?.id == userId
-                      ? "bg-blue-500 text-white self-end"
-                      : "bg-white text-black self-start"
-                  }`}
-                >
-                  {message.content}
-                </p>
-              );
-            }
-            return null; // or handle unexpected data differently
-          })}
+        <div
+          className="messages flex flex-col-reverse space-y-reverse space-y-4 overflow-y-auto"
+          key={messages.length}
+        >
+          {messages
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) 
+            .filter(
+              (message) =>
+                typeof message === "object" && message.id && message.content
+            )
+            .map((message, index) => (
+              <p
+                key={message.id}
+                className={`p-2 rounded-lg max-w-xs ${
+                  message.user.toString() === userId.toString()
+                    ? "bg-blue-500 text-white self-end"
+                    : "bg-white text-black self-start"
+                }`}
+              >
+                {message.content}
+              </p>
+            ))}
         </div>
+
         <form
           style={{ marginTop: "20px" }}
           className="new-message-form"

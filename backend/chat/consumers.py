@@ -74,12 +74,48 @@ class ChatConsumer(AsyncWebsocketConsumer):
             user=self.scope['user'],
             content=message_content
         )
+        
+    @database_sync_to_async
+    def get_message_object(self, message_content):
+        try:
+            message = Message.objects.get(content=message_content)
+            message_obj = {
+                'id': message.id,
+                'chat_room': message.chat_room.id, 
+                'user': message.user.id, 
+                'content': message.content,
+                'timestamp': message.timestamp.isoformat(), 
+            }
+            return message_obj
+        except Message.DoesNotExist:
+            return None
 
+    # async def send_message(self, event):
+    #     message = event['message']
+    #     await self.send(text_data=json.dumps({
+    #         'message': message
+    #     }))
+    
     async def send_message(self, event):
-        message = event['message']
+        message_content = event['message']
+        message_obj = await self.get_message_object(message_content)
+        await self.send(text_data=json.dumps(message_obj))
+        
+        
+
+
+
+class VideoConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        pass
+
+    async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json['message']
+
         await self.send(text_data=json.dumps({
             'message': message
-        }))
-
-
-
+            }))

@@ -14,7 +14,6 @@ from rest_framework import status,viewsets
 
 class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer
-    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user_id1 = self.kwargs['user_id1']
