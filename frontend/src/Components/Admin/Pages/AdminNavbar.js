@@ -38,7 +38,7 @@ function AdminNavbar() {
             <NavLink to="/postlist" currentPath={location.pathname}>
               Posts
             </NavLink>
-            <NavLink to="/admin/reports" currentPath={location.pathname}>
+            <NavLink to="/reports" currentPath={location.pathname}>
               Reports
             </NavLink>
           </div>

@@ -81,10 +81,12 @@ class PostSerializer(serializers.ModelSerializer):
     images = PostImageSerializer(source = 'postimage_set', many=True, read_only = True,required=False)
     videos = PostVideoSerializer(source='postvideo_set',many=True,read_only = True,required=False)
     user = CustomUserSerializer(read_only=True)
+    like_count = serializers.IntegerField(read_only=True)
+    comment_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id','user','content', 'is_deleted','created_at', 'images','videos']
+        fields = ['id','user','content', 'is_deleted','created_at', 'images','videos','like_count','comment_count']
 
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
@@ -125,10 +127,7 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = ['user', 'post', 'created_at']
 
-class DislikeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Dislike
-        fields = ['user', 'post', 'created_at']
+
 
 class CommentSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)

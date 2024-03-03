@@ -11,4 +11,5 @@ urlpatterns = [
     path('admin/posts/', AdminPostsList.as_view(), name='admin-posts'),
     path('posts/<int:post_id>/', AdminPostsList.as_view(), name='post-delete'),
     path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
+    path('admin/reports/',GetPostsView.as_view(),name='adminreports'),
 ]

@@ -23,6 +23,7 @@ import NotificationComponent from '../Home/Notifications'
 import PasswordReset from '../Verification/PasswordReset'
 import SinglePostDetails from '../Home/PostDetails'
 import AdminDashboard from '../Admin/Pages/AdminDashboard'
+import PostList from '../Admin/Pages/Reports'
 
 
 
@@ -81,6 +82,10 @@ export default function LayOut() {
     {
       path: '/postlist',
       element : <Posts />
+    },
+    {
+      path: '/reports',
+      element : <PostList />
     },
     {
       path: '/home', 

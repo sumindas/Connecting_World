@@ -42,10 +42,10 @@ const DetailModal = ({ post, show, onClose }) => {
                     Content: {post.content}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Likes Count: {post.likes_count}
+                    Likes Count: {post.like_count}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Comments Counts: {post.comments_count}
+                    Comments Counts: {post.comment_count}
                   </p>
                   <div className="mt-4">
                     {post.images &&

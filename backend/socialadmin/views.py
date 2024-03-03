@@ -83,7 +83,7 @@ class AdminUsersList(APIView):
 class AdminPostsList(APIView):
 
     def get(self, request):
-        posts = Post.objects.filter(is_deleted=False).order_by('-created_at')
+        posts = Post.objects.filter(is_deleted=False).annotate(like_count = Count('like'),comment_count = Count('comment')).order_by('-created_at')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
@@ -117,3 +117,10 @@ class AdminDashboardView(APIView):
     def get(self, request):
         data = get_dashboard_data()
         return Response(data)
+    
+
+class GetPostsView(APIView):
+    def get(self, request):
+        posts = Post.objects.filter(is_deleted=False).annotate(report_count=Count('reports')).order_by('-created_at')
+        post_list = list(posts.values('id', 'user__username', 'created_at', 'report_count'))
+        return Response(post_list)

@@ -210,11 +210,11 @@ export default function UserProfile() {
         </div>
 
         <div className="profile-button">
-          <Link to="/chat/id">
+          {/* <Link to="/chat/id">
             <button className="btn btn-primary">
               <FontAwesomeIcon icon={faMessage} />
             </button>
-          </Link>
+          </Link> */}
           {isOwnProfile ? null : (
             <button className="btn btn-primary">
               <FontAwesomeIcon icon={faFeed} />
