@@ -121,6 +121,22 @@ class AdminDashboardView(APIView):
 
 class GetPostsView(APIView):
     def get(self, request):
-        posts = Post.objects.filter(is_deleted=False).annotate(report_count=Count('reports')).order_by('-created_at')
-        post_list = list(posts.values('id', 'user__username', 'created_at', 'report_count'))
+        posts = Post.objects.filter(is_deleted=False).annotate(report_count=Count('reports')).prefetch_related('reports').order_by('-created_at')
+        
+        post_list = [
+            {
+                'id': post.id,
+                'user__username': post.user.username, 
+                'created_at': post.created_at,
+                'report_count': post.report_count,
+                'reports': [
+                    {
+                        'id': report.id,
+                        'reason': report.content, 
+                        'created_at': report.created_at,
+                    } for report in post.reports.all()
+                ]
+            } for post in posts
+        ]
+        
         return Response(post_list)

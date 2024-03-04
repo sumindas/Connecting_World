@@ -6,6 +6,7 @@ from chat.models import Notification
 
 
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -77,16 +78,25 @@ class PostVideoSerializer(serializers.ModelSerializer):
         model = PostVideo
         fields = ['video_url']
 
+
+class ReportSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+    
+    class Meta:
+        model = Report
+        fields = '__all__'
+        
 class PostSerializer(serializers.ModelSerializer):
     images = PostImageSerializer(source = 'postimage_set', many=True, read_only = True,required=False)
     videos = PostVideoSerializer(source='postvideo_set',many=True,read_only = True,required=False)
     user = CustomUserSerializer(read_only=True)
+    reports = ReportSerializer(many=True, read_only=True)
     like_count = serializers.IntegerField(read_only=True)
     comment_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Post
-        fields = ['id','user','content', 'is_deleted','created_at', 'images','videos','like_count','comment_count']
+        fields = ['id','user','content', 'is_deleted','created_at', 'images','videos','like_count','comment_count','reports']
 
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
@@ -151,10 +161,4 @@ class FollowingSerializer(serializers.ModelSerializer):
         
 
 
-class ReportSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(read_only=True)
-    post = PostSerializer(read_only=True)
-    
-    class Meta:
-        model = Report
-        fields = '__all__'
+
