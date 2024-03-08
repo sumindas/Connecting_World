@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { BASE_URL } from '../../../Api/api';
 import AdminNavbar from './AdminNavbar';
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
                 <div className="mt-6">
-                    <Bar data={chartData} options={chartOptions} />
+                    <Line data={chartData} options={chartOptions} /> 
                 </div>
             </div>
         </>

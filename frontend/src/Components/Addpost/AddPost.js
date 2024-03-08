@@ -66,6 +66,7 @@ export default function AddPost({ onNewPost }) {
         <input
           type="text"
           placeholder="What's on your mind"
+          accept="image/*"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -77,6 +78,7 @@ export default function AddPost({ onNewPost }) {
         <label htmlFor="images">
           <input
             type="file"
+            name = 'images'
             id="images"
             multiple
             onChange={(e) => setImages(Array.from(e.target.files))}

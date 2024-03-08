@@ -14,14 +14,19 @@ import {
   faEnvelope,
   faBell,
   faBars,
+  faMessage,
+  faFire,
+  faUserFriends,
 } from "@fortawesome/free-solid-svg-icons";
 import DarkMode from "../Darkmode/DarkMode";
 import { BASE_URL } from "../../Api/api";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { useRef } from "react";
+import { useMediaQuery } from 'react-responsive';
+import LeftBar from "../LeftBar/LeftBar";
 
-export default function NavBar() {
+export default function NavBar({toggleLeftBar,toggleRightBar}) {
   const CurrentUser = useSelector((state) => state.auth.user);
   const [username, setUsername] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -30,6 +35,9 @@ export default function NavBar() {
   const CurrentUserName = CurrentUser?.user?.username;
   const userId = localStorage.getItem("userId");
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+
+
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -76,12 +84,15 @@ export default function NavBar() {
     }
   };
 
+  
+
   return (
     <nav>
       <div className="nav-container">
         {/* ............Nav Area Left............... */}
         <div className="nav-left">
-          <Link to="/">
+        
+          <Link to="/home">
             <h3 className="logo">
               <strong>Connecting World</strong>
             </h3>
@@ -134,6 +145,7 @@ export default function NavBar() {
         {/* ............Nav Area Right............... */}
 
         <div className="nav-right">
+        
           <Link to={`/home/notificatins/${userId}`} className="relative">
             <div className="bell-icon">
               <FontAwesomeIcon icon={faBell} className="text-xl" />
@@ -147,6 +159,13 @@ export default function NavBar() {
 
           <DarkMode />
           <div className="user">
+          {isMobile && (
+          <div className="icon" style={{marginLeft:'20px'}} >
+          <FontAwesomeIcon className="text-xl" icon={faMessage} onClick={toggleLeftBar} />
+          <FontAwesomeIcon className="text-xl" icon = {faUserFriends} style={{marginLeft:'5px'}} onClick={toggleRightBar} />
+          </div>
+        )}
+            <Link to = {'/home/profile'}>
             {CurrentUser && CurrentUser.user_profile ? (
               <img
                 src={`${BASE_URL}${CurrentUser.user_profile.profile_image}`}
@@ -154,9 +173,11 @@ export default function NavBar() {
                 className="profile-image"
               />
             ) : null}
+            </Link>
             <h4 style={{ marginLeft: "10px" }}>
               {CurrentUser?.user?.username}
             </h4>
+            
           </div>
         </div>
       </div>

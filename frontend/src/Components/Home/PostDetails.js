@@ -5,7 +5,7 @@ import { faComment, faHeart } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import CommentsList from "../Comments/Comments"; // Adjust the import path as necessary
+import CommentsList from "../Comments/Comments"; 
 import { BASE_URL } from "../../Api/api";
 
 const SinglePostDetails = () => {
@@ -78,7 +78,7 @@ const SinglePostDetails = () => {
   return (
     <div className="bg-white shadow rounded-lg p-4 my-4">
       <div className="flex items-center">
-        {post.user && post.user.userprofile.profile_image && (
+        {post && post.user && post.user.userprofile && post.user.userprofile.profile_image && (
           <img
             src={`${BASE_URL}${post.user.userprofile.profile_image}`}
             alt={`Profile image of ${post.user.username}`}

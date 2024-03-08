@@ -57,18 +57,11 @@ hr{
   }
   
 
-@media (max-width:1024px) {
-    .left-container{
-        width: fit-content;
-    }
-    .left-container h4{
-        display: none;
-    }
-    
-}
 
- @media (max-width:768px){
-    .leftBar{
-        display: none;
+
+@media (max-width: 768px) {
+    .leftBar .icon {
+        display: block !important;
     }
-} 
+   }
+

@@ -3,11 +3,13 @@ import React, { useEffect, useState, Fragment } from "react";
 import "./userprofile.css";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   faEdit,
   faFeed,
   faMessage,
   faSignOut,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { BASE_URL } from "../../Api/api";
@@ -19,8 +21,8 @@ import { resetState } from "../../Redux/Slice/postSlice";
 export default function UserProfile() {
   const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.auth.user);
-  const token = localStorage.getItem('token')
-  console.log("token-",token)
+  const token = localStorage.getItem("token");
+  console.log("token-", token);
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -32,42 +34,42 @@ export default function UserProfile() {
   const [dob, setDob] = useState(userData?.user_profile?.date_of_birth || "");
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [coverPhoto, setCoverPhoto] = useState(null);
-  const [userProfileId,setuserProfileId] = useState()
-  const userId = localStorage.getItem('userId')
- 
+  const [userProfileId, setuserProfileId] = useState();
+  const userId = localStorage.getItem("userId");
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
-    if(token){
+    if (token) {
       axios
-      .get(`${BASE_URL}/userdata/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        const userData = response.data;
-        console.log("UserData:",userData)
-        setUserData(userData);
-        dispatch(setUser(userData));
-        setuserProfileId(userData.user.id)
-        setUsername(userData?.user?.username || "");
-        setLocation(userData?.user_profile?.location || "");
-        setBio(userData?.user_profile?.bio || "");
-        setDob(userData?.user_profile?.date_of_birth || "");
-      })
-      .catch((error) => {
-        console.log("Error fetching user data:", error);
-      });
-    } else{
-      navigate('/')
+        .get(`${BASE_URL}/userdata/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        })
+        .then((response) => {
+          const userData = response.data;
+          console.log("UserData:", userData);
+          setUserData(userData);
+          dispatch(setUser(userData));
+          setuserProfileId(userData.user.id);
+          setUsername(userData?.user?.username || "");
+          setLocation(userData?.user_profile?.location || "");
+          setBio(userData?.user_profile?.bio || "");
+          setDob(userData?.user_profile?.date_of_birth || "");
+        })
+        .catch((error) => {
+          console.log("Error fetching user data:", error);
+        });
+    } else {
+      navigate("/");
     }
-  }, [token, dispatch,navigate]);
+  }, [token, dispatch, navigate]);
 
-  
-  console.log("---",userProfileId)
-
+  console.log("---", userProfileId);
 
   const openModal = () => {
     setIsOpen(true);
@@ -77,86 +79,121 @@ export default function UserProfile() {
     setIsOpen(false);
   };
 
-
   const handleLogout = async (e) => {
-      try {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userId');
-          localStorage.removeItem('CurrentUser')
-         
-          const response = await axios.post(`${BASE_URL}/logout/${userId}/`);
-  
-          if (response.status !==  200) {
-              throw new Error('Logout failed');
-          }
-  
-          dispatch(userLogout());
-          dispatch(resetState())
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("CurrentUser");
 
-          console.log("Success");
-          navigate("/");
-      } catch (error) {
-          console.error("Error logging out:", error);
-         
+      const response = await axios.post(`${BASE_URL}/logout/${userId}/`);
+
+      if (response.status !== 200) {
+        throw new Error("Logout failed");
       }
+
+      dispatch(userLogout());
+      dispatch(resetState());
+
+      console.log("Success");
+      navigate("/");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
   };
-  
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form")
-  
+    console.log("Form");
+
     const formData = new FormData();
-    formData.append('username', username);
-    formData.append('location', location);
-    formData.append('bio', bio);
-    formData.append('date_of_birth', dob);
+    formData.append("username", username);
+    formData.append("location", location);
+    formData.append("bio", bio);
+    formData.append("date_of_birth", dob);
     if (profilePhoto) {
-       formData.append('profile_photo', profilePhoto);
+      formData.append("profile_photo", profilePhoto);
     }
     if (coverPhoto) {
-       formData.append('cover_photo', coverPhoto);
+      formData.append("cover_photo", coverPhoto);
     }
-   
-    try {
-       // Use Axios to send the POST request
-       const response = await axios.post(`http://127.0.0.1:8000/userupdate/${userProfileId}/`, formData, {
-         headers: {
-           'Authorization': `Bearer ${token}`,
-           'Content-Type': 'multipart/form-data', 
-         },
-         withCredentials: true,
-       });
-   
-       console.log(response.data);
-  
-       const updatedUserDataResponse = await axios.get(`${BASE_URL}/userdata/`, {
-         headers: {
-           Authorization: `Bearer ${token}`,
-           "Content-Type": "application/json",
-         },
-         withCredentials: true,
-       });
-   
-       const updatedUserData = updatedUserDataResponse.data;
-   
-       setUserData(updatedUserData);
-       dispatch(setUser(updatedUserData));
-       setuserProfileId(updatedUserData.user_profile.id);
-       setUsername(updatedUserData?.user?.username || "");
-       setLocation(updatedUserData?.user_profile?.location || "");
-       setBio(updatedUserData?.user_profile?.bio || "");
-       setDob(updatedUserData?.user_profile?.date_of_birth || "");
-   
-       closeModal();
-    } catch (error) {
-       console.error('There has been a problem with your Axios operation:', error);
-    }
-   };
-   
 
-  const isOwnProfile =
-    currentUser && userData && currentUser.user.id === userData.user.id;
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/userupdate/${userProfileId}/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log(response.data);
+
+      const updatedUserDataResponse = await axios.get(`${BASE_URL}/userdata/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+
+      const updatedUserData = updatedUserDataResponse.data;
+
+      setUserData(updatedUserData);
+      dispatch(setUser(updatedUserData));
+      setuserProfileId(updatedUserData.user_profile.id);
+      setUsername(updatedUserData?.user?.username || "");
+      setLocation(updatedUserData?.user_profile?.location || "");
+      setBio(updatedUserData?.user_profile?.bio || "");
+      setDob(updatedUserData?.user_profile?.date_of_birth || "");
+
+      closeModal();
+    } catch (error) {
+      console.error(
+        "There has been a problem with your Axios operation:",
+        error
+      );
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteError('')
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/delete_user/${userId}/`,
+        {
+          password: deletePassword,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(response.data, "-----------");
+      if (response.status === 204) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("CurrentUser")
+        dispatch(userLogout());
+        dispatch(resetState());
+        navigate("/");
+      } else if (response.status === 400) {
+        setDeleteError(response.data);
+      } else {
+        console.error("Failed to delete account");
+      }
+    } catch (error) {
+      console.log(error.response?.data?.error)
+      setDeleteError(error.response?.data?.error)
+      console.error("Error deleting account:", error);
+    }
+  };
 
   return (
     <div className="userProfile">
@@ -170,7 +207,6 @@ export default function UserProfile() {
           />
         ) : (
           <img src="" alt="No cover Photo" />
-      
         )}
       </div>
       <div className="profile-info">
@@ -186,8 +222,7 @@ export default function UserProfile() {
         )}
 
         <div className="user-name">
-
-        {currentUser && currentUser.user && currentUser.user.full_name ? (
+          {currentUser && currentUser.user && currentUser.user.full_name ? (
             <h5>{currentUser.user.full_name}</h5>
           ) : (
             <input type="text" placeholder="Update Fullname" />
@@ -197,7 +232,7 @@ export default function UserProfile() {
           ) : (
             <input type="text" placeholder="Update username" />
           )}
-         
+
           <div className="user-location">
             {currentUser &&
             currentUser.user_profile &&
@@ -210,20 +245,17 @@ export default function UserProfile() {
         </div>
 
         <div className="profile-button">
-          {/* <Link to="/chat/id">
-            <button className="btn btn-primary">
-              <FontAwesomeIcon icon={faMessage} />
-            </button>
-          </Link> */}
-          {isOwnProfile ? null : (
-            <button className="btn btn-primary">
-              <FontAwesomeIcon icon={faFeed} />
-              Follow me
-            </button>
-          )}
+          <button
+            className="btn btn-primary"
+            onClick={() => setIsDeleteConfirmOpen(true)}
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            <span className="hide-text">Delete Account</span>
+          </button>
+
           <button className="btn btn-primary" onClick={openModal}>
             <FontAwesomeIcon icon={faEdit} />
-            Update Profile
+            <span className="hide-text">Update Profile</span>
           </button>
           <Transition show={isOpen} as={React.Fragment}>
             <Dialog
@@ -420,9 +452,90 @@ export default function UserProfile() {
             </Dialog>
           </Transition>
 
+          <Transition show={isDeleteConfirmOpen} as={Fragment}>
+            <Dialog
+              as="div"
+              className="fixed inset-0 z-10 overflow-y-auto"
+              onClose={() => setIsDeleteConfirmOpen(false)}
+            >
+              <div className="min-h-screen px-4 text-center">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0"
+                  enterTo="opacity-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+                </Transition.Child>
+
+                <span
+                  className="inline-block h-screen align-middle"
+                  aria-hidden="true"
+                >
+                  &#8203;
+                </span>
+
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
+                    >
+                      Confirm Account Deletion
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        Please enter your password to confirm account deletion.
+                      </p>
+                      
+                      <input
+                        type="password"
+                        placeholder="Enter your password"
+                        className="mt-4 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                      />
+                    </div>
+                    {deleteError && (
+                        <p className="text-sm text-red-600" style={{textAlign:'center'}}>{deleteError}</p>
+                      )}
+
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        onClick={handleDeleteAccount}
+                      >
+                        Confirm Deletion
+                      </button>
+                      <button
+                        type="button"
+                        className="ml-4 inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        onClick={() => setIsDeleteConfirmOpen(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </Transition.Child>
+              </div>
+            </Dialog>
+          </Transition>
+
           <button className="btn btn-primary" onClick={(e) => handleLogout(e)}>
             <FontAwesomeIcon icon={faSignOut} />
-            Logout
+            <span className="hide-text">Logout</span>
           </button>
         </div>
         <p className="bio">

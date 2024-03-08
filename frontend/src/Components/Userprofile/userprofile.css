@@ -59,3 +59,48 @@
     border-radius: 4px;
     font-size: 16px;
 }
+@media (max-width: 768px) {
+    .profile-info > img {
+        width: 100px; /* Adjust the size of the profile image on smaller screens */
+        margin-top: -60px; /* Adjust the margin-top to keep the image centered */
+    }
+
+    .cover-photos input[type="file"],
+    .profile-info input[type="file"] {
+        font-size: 14px; /* Adjust the font size of the file input on smaller screens */
+    }
+    .profile-button button{
+       width: auto;
+       height: auto;
+    }
+    .hide-text{
+        display: none;
+    }
+
+    .user-name input[type="email"],
+    .user-name input[type="text"] {
+        font-size: 14px; /* Adjust the font size of the text inputs on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-info {
+        width: 100%; /* Adjust the width of the profile info on very small screens */
+        padding: 15px; /* Adjust the padding to better fit smaller screens */
+    }
+
+    .profile-info > img {
+        width: 80px; /* Further reduce the size of the profile image on very small screens */
+        margin-top: -50px; /* Adjust the margin-top to keep the image centered */
+    }
+
+    .cover-photos input[type="file"],
+    .profile-info input[type="file"] {
+        font-size: 12px; /* Further reduce the font size of the file input on very small screens */
+    }
+
+    .user-name input[type="email"],
+    .user-name input[type="text"] {
+        font-size: 12px; /* Further reduce the font size of the text inputs on very small screens */
+    }
+}

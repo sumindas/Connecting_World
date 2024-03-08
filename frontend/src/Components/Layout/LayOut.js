@@ -1,4 +1,4 @@
-import React, { useSelector } from 'react-redux'
+import React from 'react-redux'
 import {  Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom'
 
 
@@ -14,7 +14,6 @@ import LeftBar from '../LeftBar/LeftBar'
 import RightBar from '../RightBar/RightBar'
 import Verification from '../Verification/Verify'
 import AdminLogin from '../Admin/Pages/login'
-import AdminHome from '../Admin/Pages/AdminHome'
 import Users from '../Admin/Pages/Users'
 import OtherUser from '../Userprofile/otherUserProfile'
 import Posts from '../Admin/Pages/Posts'
@@ -24,27 +23,38 @@ import PasswordReset from '../Verification/PasswordReset'
 import SinglePostDetails from '../Home/PostDetails'
 import AdminDashboard from '../Admin/Pages/AdminDashboard'
 import PostList from '../Admin/Pages/Reports'
+import { useMediaQuery } from 'react-responsive';
+import NotificationComponent2 from '../Home/NotNew'
+import { useState } from 'react'
 
 
 
 export default function LayOut() {
 
+ const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+ const [isLeftBarVisible, setIsLeftBarVisible] = useState(false);
+ const [isRightBarVisible,setRightBarVisible] = useState(false)
 
-  // const loggedUser = useSelector((state)=>state.auth.user)
-  // console.log(loggedUser.id)
-  //loggedInUser
-  //Feed............
+ const toggleLeftBar = () => {
+    setIsLeftBarVisible(!isLeftBarVisible);
+ };
+
+ const toggleRightBar = () => {
+  setRightBarVisible(!isRightBarVisible)
+ }
+  
   const Feed = () => {
     return (
       <>
-      <NavBar />
-      <main>
-        <LeftBar />
-        <div className="container">
-          <Outlet />
-        </div>
-        <RightBar />
-      </main>
+       <NavBar toggleLeftBar={toggleLeftBar} toggleRightBar={toggleRightBar} />
+        <main>
+        {isMobile && isRightBarVisible && <RightBar />}
+        {(isMobile ? isLeftBarVisible : true) && <LeftBar />}
+          <div className="container">
+            <Outlet />
+          </div>
+          {!isMobile && !isRightBarVisible && <RightBar /> }
+        </main>
       </>
     )
   }

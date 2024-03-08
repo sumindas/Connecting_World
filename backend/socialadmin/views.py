@@ -88,12 +88,15 @@ class AdminPostsList(APIView):
         return Response(serializer.data)
 
     def post(self, request, post_id):
+        print("p:",post_id)
         post = get_object_or_404(Post, id=post_id)
+        print(post)
 
         post.is_deleted = not post.is_deleted
         post.save()
-
+        print(post.is_deleted,"--")
         serializer = PostSerializer(post)
+        
         return Response(serializer.data)
     
 def get_dashboard_data():
@@ -121,7 +124,7 @@ class AdminDashboardView(APIView):
 
 class GetPostsView(APIView):
     def get(self, request):
-        posts = Post.objects.filter(is_deleted=False).annotate(report_count=Count('reports')).prefetch_related('reports').order_by('-created_at')
+        posts = Post.objects.all().annotate(report_count=Count('reports')).prefetch_related('reports').order_by('-created_at')
         
         post_list = [
             {
@@ -129,6 +132,7 @@ class GetPostsView(APIView):
                 'user__username': post.user.username, 
                 'created_at': post.created_at,
                 'report_count': post.report_count,
+                'is_deleted' : post.is_deleted,
                 'reports': [
                     {
                         'id': report.id,

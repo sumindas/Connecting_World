@@ -46,6 +46,7 @@ export const verifyOtpAsync = (email,otp,navigate) => async (dispatch) => {
 }
 
 export const login = (email,password,navigate) => async (dispatch) =>{
+  dispatch(setError(''))
   try{
     const response = await loginApi(email,password)
     console.log(response)

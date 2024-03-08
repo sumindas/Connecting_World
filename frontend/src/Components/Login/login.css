@@ -136,14 +136,38 @@
     }
 }
 
-   
-@media (max-width:600px) {
-    .login .card{
+@media (max-width: 600px) {
+    .login .card {
         width: 90%;
         flex-direction: column;
+        box-shadow: none;
     }
-    .login .card .right{
+    .login .card .right {
         padding-bottom: 20px;
     }
+    .login .card .left, .login .card .right {
+        padding: 10px;
+    }
     
+}
+
+@media (max-width: 480px) {
+    .login .card {
+        width: 95%;
+    }
+    .login form input {
+        font-size: 0.8rem;
+    }
+    .login form .btn {
+        font-size: 0.8rem;
+    }
+    .modal-content {
+        width: 95%;
+    }
+    .modal-content input {
+        font-size: 0.8rem;
+    }
+    .modal-content .btn {
+        font-size: 0.8rem;
+    }
 }

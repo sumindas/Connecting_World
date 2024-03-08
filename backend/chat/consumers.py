@@ -2,9 +2,11 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from chat.models import Message, ChatRoom
-from user.models import CustomUser
+from user.models import CustomUser, Post,Comment
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from chat.models import Notification
+from django.db import transaction
 
 
 
@@ -78,7 +80,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_message_object(self, message_content):
         try:
-            message = Message.objects.get(content=message_content)
+            message = Message.objects.filter(content=message_content).first()
             message_obj = {
                 'id': message.id,
                 'chat_room': message.chat_room.id, 
@@ -89,12 +91,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return message_obj
         except Message.DoesNotExist:
             return None
-
-    # async def send_message(self, event):
-    #     message = event['message']
-    #     await self.send(text_data=json.dumps({
-    #         'message': message
-    #     }))
     
     async def send_message(self, event):
         message_content = event['message']
@@ -103,19 +99,113 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         
 
+#Video Call
 
 
 class VideoConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        await self.channel_layer.group_add(
+            f"video_{self.user_id}",
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            f"video_{self.user_id}",
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message_type = text_data_json['type']
+
+        if message_type == 'offer':
+            await self.handle_offer(text_data_json)
+        elif message_type == 'answer':
+            await self.handle_answer(text_data_json)
+        elif message_type == 'candidate':
+            await self.handle_candidate(text_data_json)
+        else:
+            print("Unknown message type:", message_type)
+
+    async def handle_offer(self, message):
+        # Here, you would typically store the offer and send it to the other user
+        # For simplicity, we'll just broadcast it to the group
+        await self.channel_layer.group_send(
+            f"video_{self.user_id}",
+            {
+                'type': 'video_message',
+                'message': message
+            }
+        )
+
+    async def handle_answer(self, message):
+        # Similar to handle_offer, you would handle the answer here
+        await self.channel_layer.group_send(
+            f"video_{self.user_id}",
+            {
+                'type': 'video_message',
+                'message': message
+            }
+        )
+
+    async def handle_candidate(self, message):
+        # Handle ICE candidates similarly
+        await self.channel_layer.group_send(
+            f"video_{self.user_id}",
+            {
+                'type': 'video_message',
+                'message': message
+            }
+        )
+
+    async def video_message(self, event):
+        message = event['message']
+
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
+
+
+#Notifications
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        if self.scope['user'] is None:
+            await self.close()
+            return
+        if 'user_id' not in self.scope['url_route']['kwargs']:
+            await self.close()
+            return
+        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        self.user_group_name = f'user_{self.user_id}'
+        
+        await self.channel_layer.group_add(
+            self.user_group_name,
+            self.channel_name
+        )
+
         await self.accept()
 
     async def disconnect(self, close_code):
         pass
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        print("text:",text_data)
+        data = json.loads(text_data)
+        user_id = data['user_id']
+        notifications = Notification.objects.filter(user_id=user_id, read=False)
 
         await self.send(text_data=json.dumps({
-            'message': message
-            }))
+            'notifications': [{'content': notification.content, 'timestamp': str(notification.timestamp)}
+                              for notification in notifications]
+        }))
+
+    async def send_notification(self, event):
+        print("------shshjhs------")
+        await self.send(text_data=json.dumps({
+            'message': 'Notification received!'
+        }))

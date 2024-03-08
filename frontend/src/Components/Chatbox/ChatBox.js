@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowCircleRight, faVideo } from "@fortawesome/free-solid-svg-icons";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { BASE_URL } from "../../Api/api";
-import { useSelector } from "react-redux";
-
 import "./chatbox.css";
+import Swal from 'sweetalert2';
+
 
 export default function ChatBox() {
   const [user, setUser] = useState(null);
@@ -16,8 +16,10 @@ export default function ChatBox() {
   const socketRef = useRef(null);
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
-  const [errorMessage, setErrorMessage] = useState(null);
-
+  
+ 
+  
+   
   useEffect(() => {
     console.log("Component re-rendered with new messages:", messages);
   }, [messages]);
@@ -60,27 +62,33 @@ export default function ChatBox() {
 
         socketRef.current.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data);
-            if (
-              typeof data === "object" &&
-              data.id &&
-              data.chat_room &&
-              data.user &&
-              data.content &&
-              data.timestamp
-            ) {
-              setMessages((prevMessages) => [...prevMessages, data]);
-              console.log(data,"---")
-            } else {
-              console.error("Unexpected message format:", data);
-            }
+             const data = JSON.parse(event.data);
+             console.log("Received message:", data);
+             if (
+               typeof data === "object" &&
+               data.id &&
+               data.chat_room &&
+               data.user &&
+               data.content &&
+               data.timestamp
+             ) {
+               console.log("data.user:", data.user, "--", id);
+               console.log(data.user !== userId, "ooooooooooooo");
+         
+               
+               setMessages((prevMessages) => [...prevMessages, data]);
+         
+              
+             } else {
+               console.error("Unexpected message format:", data);
+             }
           } catch (error) {
-            console.error("Error parsing WebSocket message data:", error);
+             console.error("Error parsing WebSocket message data:", error);
           }
-        };
+         };
+         
 
         socketRef.current.onerror = (error) => {
-          setErrorMessage("WebSocket error: " + error.message);
           console.error("WebSocket error:", error);
         };
 
@@ -123,14 +131,21 @@ export default function ChatBox() {
     return <div>Loading...</div>;
   }
 
+  
+
   const profileImage = user?.userprofile?.profile_image;
   const fullName = user?.full_name;
   const username = user?.username;
 
+  
+
+
   return (
     <div className="chat-box">
       <div className="chat-box-top">
-        <img src={profileImage || ""} alt={fullName || ""} />
+        <Link to = {`/home/user/${id}`}>
+          <img src={profileImage || ""} alt={fullName || ""} />
+        </Link>
         <div className="user-name">
           <h3>{fullName || ""}</h3>
           <h5>{username || ""}</h5>
@@ -194,3 +209,6 @@ export default function ChatBox() {
     </div>
   );
 }
+
+
+

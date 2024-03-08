@@ -119,7 +119,7 @@ const OtherUser = () => {
           </div>
         </div>
         <div className="profile-button">
-          <Link to={`/chat/${id}`}>
+          <Link to={`/home/chat/${id}`}>
             <button className="btn btn-primary">
               <FontAwesomeIcon icon={faMessage} />
             </button>

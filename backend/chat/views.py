@@ -11,6 +11,7 @@ from rest_framework.exceptions import NotFound
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status,viewsets
+from django.http import JsonResponse
 
 class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer
@@ -55,3 +56,21 @@ class MarkNotificationAsReadView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Notification.DoesNotExist:
             return Response({"error": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class MarkMessagesAsReadView(APIView):
+    def get(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
+        messages = Message.objects.filter(user_id=user_id,read=False)
+        print(messages,"--")
+        message_list = [{"id": message.id, "content": message.content, "read": message.read} for message in messages]
+        return Response(message_list, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        user_id = self.kwargs['user_id']
+
+        messages = Message.objects.filter(user_id=user_id, read=False)
+        print(messages.query)
+        messages.update(read=True)
+        print("After update:", messages.query)
+
+        return Response({'status': 'success', 'message': 'Messages marked as read.'}, status=status.HTTP_200_OK)

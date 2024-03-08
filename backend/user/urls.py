@@ -18,6 +18,7 @@ urlpatterns = [
     path('test/',SimpleView.as_view(),name='simple'),
     path('forget-password/', ForgotPasswordView.as_view(), name='forgot_pass'),
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),
+    path('delete_user/<int:user_id>/', DeleteUserView.as_view(), name='delete_user'),
     path('userdata/',userView.as_view(),name='userdata'),
     path('logout/<int:user_id>/',UserLogout.as_view(),name='logout'),
     path('userprofile/<int:user_id>/', UserProfileDetailView.as_view(), name='userprofile-detail'),

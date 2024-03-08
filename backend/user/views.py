@@ -35,6 +35,7 @@ from chat.models import Notification
 from .email import is_valid_email
 from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model
+from chat.consumers import NotificationConsumer
 
 CustomUser = get_user_model()
 
@@ -173,7 +174,26 @@ class ResendOtpView(APIView):
             return Response({
                 'message': str(e),
                 'status': status.HTTP_400_BAD_REQUEST,
-            })      
+            })
+
+from django.contrib.auth import authenticate
+class DeleteUserView(APIView):
+    def post(self, request, user_id, format=None):
+        User = get_user_model()
+        try:
+            user = get_object_or_404(User, id=user_id)
+        except User.DoesNotExist:
+            return Response({'error':'User Not Found'},status=status.HTTP_400_BAD_REQUEST)
+        password = request.data.get('password')
+        print(password,"-")
+        auth_user = authenticate(request,username=user.username,password=password)
+        print("auth",auth_user)
+        if auth_user is not None:
+            print(user,"delete")
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error':'Please enter correct Password'},status=status.HTTP_400_BAD_REQUEST)      
 
 class LoginView(APIView):
     
@@ -534,6 +554,7 @@ class LikeAPIView(APIView):
             post = Post.objects.get(id=post_id)
             like, created = Like.objects.get_or_create(user=user, post=post)
             if created:
+                content = f"{user.username} liked your post."
                 return Response({'message': 'Like created.'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'message': 'Like already exists.'}, status=status.HTTP_200_OK)
@@ -616,12 +637,6 @@ class CommentCreateAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            Notification.objects.create(
-                user=comment_data.post.user, 
-                follower=comment_data.user,
-                post=comment_data.post,
-                content=f"{comment_data.user.username} commented on your post."
-            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -805,9 +820,10 @@ class ReportPostAPIView(APIView):
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
             return Response({'error':'User Not Found'},status=status.HTTP_400_BAD_REQUEST)
-
+        print("User:",user,"Post:",post)
         serializer = ReportSerializer(data=request.data)
         if serializer.is_valid():
             report = serializer.save(post=post, user=user)
             return Response({'message': 'Report submitted successfully'}, status=status.HTTP_201_CREATED)
+        print("serializer:",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
