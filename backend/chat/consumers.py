@@ -131,8 +131,6 @@ class VideoConsumer(AsyncWebsocketConsumer):
             print("Unknown message type:", message_type)
 
     async def handle_offer(self, message):
-        # Here, you would typically store the offer and send it to the other user
-        # For simplicity, we'll just broadcast it to the group
         await self.channel_layer.group_send(
             f"video_{self.user_id}",
             {
@@ -142,7 +140,6 @@ class VideoConsumer(AsyncWebsocketConsumer):
         )
 
     async def handle_answer(self, message):
-        # Similar to handle_offer, you would handle the answer here
         await self.channel_layer.group_send(
             f"video_{self.user_id}",
             {
@@ -152,7 +149,6 @@ class VideoConsumer(AsyncWebsocketConsumer):
         )
 
     async def handle_candidate(self, message):
-        # Handle ICE candidates similarly
         await self.channel_layer.group_send(
             f"video_{self.user_id}",
             {
